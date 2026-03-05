@@ -5,6 +5,7 @@ WebSocket 路由配置
 """
 from django.urls import re_path
 from . import consumers
+from .spectator_consumer import SpectatorConsumer
 from ai_engine import consumers as ai_consumers
 
 # WebSocket URL 模式
@@ -16,4 +17,8 @@ websocket_urlpatterns = [
     # AI 对弈 WebSocket
     # 使用示例：ws://localhost:8000/ws/ai/game/{game_id}/?token={jwt_token}
     re_path(r'ws/ai/game/(?P<game_id>[^/]+)/$', ai_consumers.AIGameConsumer.as_asgi()),
+    
+    # 观战 WebSocket
+    # 使用示例：ws://localhost:8000/ws/spectate/{game_id}/?token={jwt_token}
+    re_path(r'ws/spectate/(?P<game_id>[^/]+)/$', SpectatorConsumer.as_asgi()),
 ]

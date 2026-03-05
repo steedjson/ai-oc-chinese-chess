@@ -218,7 +218,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
             
             if result['success']:
-                # 广播走棋结果
+                # 广播走棋结果给玩家
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -241,6 +241,23 @@ class GameConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 
+                # 通知观战者
+                await self._notify_spectators_move({
+                    'move': {
+                        'from': from_pos,
+                        'to': to_pos,
+                        'piece': result.get('piece'),
+                        'captured': result.get('captured'),
+                        'notation': result.get('notation')
+                    },
+                    'fen': result.get('fen'),
+                    'turn': result.get('turn'),
+                    'move_count': result.get('move_count'),
+                    'is_check': result.get('is_check', False),
+                    'is_checkmate': result.get('is_checkmate', False),
+                    'is_stalemate': result.get('is_stalemate', False)
+                })
+                
                 # 如果游戏结束，发送游戏结束通知
                 if result.get('game_over'):
                     await self.channel_layer.group_send(
@@ -254,6 +271,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                             }
                         }
                     )
+                    
+                    # 通知观战者游戏结束
+                    await self._notify_spectators_game_over({
+                        'winner': result.get('winner'),
+                        'reason': result.get('win_reason'),
+                        'rating_change': result.get('rating_change')
+                    })
             else:
                 # 发送错误消息
                 await self.send(text_data=json.dumps({
@@ -296,6 +320,42 @@ class GameConsumer(AsyncWebsocketConsumer):
             },
             'timestamp': datetime.utcnow().isoformat() + 'Z'
         }))
+    
+    async def _notify_spectators_move(self, move_data: dict):
+        """
+        通知观战者走棋
+        
+        Args:
+            move_data: 走棋数据
+        """
+        try:
+            await self.channel_layer.group_send(
+                f'spectate_{self.game_id}',
+                {
+                    'type': 'move_made',
+                    'data': move_data
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error notifying spectators of move: {e}")
+    
+    async def _notify_spectators_game_over(self, result_data: dict):
+        """
+        通知观战者游戏结束
+        
+        Args:
+            result_data: 游戏结果数据
+        """
+        try:
+            await self.channel_layer.group_send(
+                f'spectate_{self.game_id}',
+                {
+                    'type': 'game_over',
+                    'data': result_data
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error notifying spectators of game over: {e}")
     
     async def _authenticate_connection(self) -> Optional[Dict]:
         """
