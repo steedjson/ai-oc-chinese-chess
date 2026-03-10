@@ -25,7 +25,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     1: DifficultyConfig(
         level=1,
         name="入门",
-        elo=400,
+        elo=1320,  # Stockfish 最低 ELO 限制
         skill_level=0,
         search_depth=5,
         think_time_ms=500,
@@ -35,7 +35,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     2: DifficultyConfig(
         level=2,
         name="新手",
-        elo=600,
+        elo=1350,  # Stockfish 最低 ELO 限制
         skill_level=2,
         search_depth=7,
         think_time_ms=500,
@@ -45,7 +45,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     3: DifficultyConfig(
         level=3,
         name="初级",
-        elo=800,
+        elo=1320,  # Stockfish 最低 ELO 限制
         skill_level=4,
         search_depth=9,
         think_time_ms=1000,
