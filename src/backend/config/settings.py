@@ -85,6 +85,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 30,  # 数据库锁超时时间（秒）
+        },
         'TEST': {
             'SERIALIZE': False,
         },
@@ -136,6 +139,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
     'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
 }

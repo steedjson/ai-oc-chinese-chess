@@ -71,7 +71,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_200_OK
         assert response.data['message'] == '加入成功'
@@ -98,7 +98,7 @@ class TestJoinRoom:
             'room_code': 'CHESSINVALID',
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'room_code' in response.data
@@ -125,7 +125,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'room_code' in response.data
@@ -142,7 +142,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'room_code' in response.data
@@ -155,7 +155,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'room_code' in response.data
@@ -170,7 +170,7 @@ class TestJoinRoom:
             'room_code': room.room_code.lower(),
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_200_OK
         
@@ -184,7 +184,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
@@ -210,7 +210,7 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
     
@@ -243,6 +243,6 @@ class TestJoinRoom:
             'room_code': room.room_code,
         }
         
-        response = api_client.post('/api/v1/friend/join/', data)
+        response = api_client.post('/api/v1/friend/join/', data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST

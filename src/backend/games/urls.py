@@ -36,12 +36,14 @@ router.register(r'management/games', GameManagementViewSet, basename='game-manag
 
 urlpatterns = [
     path('', include(router.urls)),
-    # 好友对战房间 - 独立端点
+    # 好友对战房间 - 独立端点 (具体路径在前，通配符在后)
     path('friend/create/', FriendRoomViewSet.as_view({'post': 'create'}), name='friend-room-create'),
-    path('friend/<str:room_code>/', FriendRoomViewSet.as_view({'get': 'retrieve'}), name='friend-room-detail'),
     path('friend/join/', friend_room_join_view, name='friend-room-join'),
     path('friend/my-rooms/', friend_room_my_rooms_view, name='friend-room-my-rooms'),
     path('friend/active-rooms/', friend_room_active_rooms_view, name='friend-room-active-rooms'),
+    # 支持两种路径格式：/friend/{room_code}/ 和 /friend/rooms/{room_code}/
+    path('friend/<str:room_code>/', FriendRoomViewSet.as_view({'get': 'retrieve'}), name='friend-room-detail'),
+    path('friend/rooms/<str:room_code>/', FriendRoomViewSet.as_view({'get': 'retrieve'}), name='friend-room-detail-rooms'),
     # 观战者详细信息
     path('games/<uuid:game_id>/spectators/<uuid:spectator_id>/', get_spectator_info, name='spectator-info'),
     # 聊天独立端点

@@ -1,6 +1,7 @@
 """
 好友对战房间序列化器
 """
+import re
 from rest_framework import serializers
 from games.models import FriendRoom, Game
 
@@ -22,6 +23,7 @@ class FriendRoomCreateSerializer(serializers.ModelSerializer):
         
         user = self.context['request'].user
         time_control = validated_data.get('time_control', 600)
+        is_rated = validated_data.get('is_rated', False)
         
         # 创建游戏
         game = Game.objects.create(
@@ -31,6 +33,7 @@ class FriendRoomCreateSerializer(serializers.ModelSerializer):
             timeout_seconds=time_control,
             red_time_remaining=time_control,
             black_time_remaining=time_control,
+            is_rated=is_rated,
         )
         
         # 创建房间
@@ -73,12 +76,40 @@ class JoinRoomSerializer(serializers.Serializer):
     
     def validate_room_code(self, value):
         """验证房间号"""
+        from rest_framework.exceptions import NotFound
+        
+        # 验证房间号格式（只允许大写字母和数字）
+        if not re.match(r'^[A-Z0-9]+$', value.upper()):
+            raise serializers.ValidationError('房间号只能包含大写字母和数字')
+        
         try:
-            room = FriendRoom.objects.get(room_code=value.upper())
+            room = FriendRoom.objects.select_related('game').get(room_code=value.upper())
+            
+            # 检查是否过期
+            if room.is_expired():
+                raise serializers.ValidationError('房间已过期')
+            
+            # 检查房间状态
+            if room.status == 'playing':
+                raise serializers.ValidationError('房间已在对局中')
+            if room.status == 'finished':
+                raise serializers.ValidationError('房间已结束')
+            if room.status == 'expired':
+                raise serializers.ValidationError('房间已过期')
+            
+            # 检查是否可加入
             if not room.is_joinable():
                 raise serializers.ValidationError('房间不可加入')
+            
+            # 检查是否自己的房间
             if room.creator == self.context['request'].user:
                 raise serializers.ValidationError('不能加入自己的房间')
+            
+            # 检查游戏是否已有黑方
+            if room.game.player_black is not None:
+                raise serializers.ValidationError('房间已满')
+            
             return value.upper()
         except FriendRoom.DoesNotExist:
-            raise serializers.ValidationError('房间不存在')
+            # 房间不存在应该返回 404
+            raise NotFound('房间不存在')
