@@ -50,7 +50,7 @@ class TestCreateRoom:
         # 验证数据库记录
         room = FriendRoom.objects.get(room_code=response.data['room_code'])
         assert room.creator.username == 'testuser1'
-        assert room.game.time_control == 600
+        assert room.game.timeout_seconds == 600
         assert room.game.is_rated == False
     
     def test_create_room_unauthenticated(self):

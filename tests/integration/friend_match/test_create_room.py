@@ -58,7 +58,7 @@ class TestCreateRoom:
         # 验证数据库记录
         room = FriendRoom.objects.get(room_code=response.data['room_code'])
         assert room.creator.username == 'testuser1'
-        assert room.game.time_control == 600
+        assert room.game.timeout_seconds == 600
         assert room.game.is_rated == False
     
     def test_create_room_default_time_control(self, authenticated_client):
@@ -67,7 +67,7 @@ class TestCreateRoom:
         
         assert response.status_code == status.HTTP_201_CREATED
         room = FriendRoom.objects.get(room_code=response.data['room_code'])
-        assert room.game.time_control == 600  # 默认值
+        assert room.game.timeout_seconds == 600  # 默认值
     
     def test_create_room_custom_time_control(self, authenticated_client):
         """测试自定义时间控制"""
@@ -80,7 +80,7 @@ class TestCreateRoom:
         
         assert response.status_code == status.HTTP_201_CREATED
         room = FriendRoom.objects.get(room_code=response.data['room_code'])
-        assert room.game.time_control == 1800
+        assert room.game.timeout_seconds == 1800
         assert room.game.is_rated == True
     
     def test_create_room_invalid_time_control_low(self, authenticated_client):

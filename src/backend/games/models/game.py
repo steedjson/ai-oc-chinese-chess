@@ -113,6 +113,12 @@ class Game(models.Model):
         db_column='move_count'
     )
     
+    # 是否计分
+    is_rated = models.BooleanField(
+        default=False,
+        verbose_name='是否计分'
+    )
+    
     # 超时信息
     timeout_seconds = models.IntegerField(
         default=7200,  # 2 小时
