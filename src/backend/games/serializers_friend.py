@@ -2,7 +2,7 @@
 好友对战房间序列化器
 """
 from rest_framework import serializers
-from .models import FriendRoom, Game
+from games.models import FriendRoom, Game
 
 
 class FriendRoomCreateSerializer(serializers.ModelSerializer):

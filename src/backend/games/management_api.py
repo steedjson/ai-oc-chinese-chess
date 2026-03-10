@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.db.models import Q
 
 from games.models import Game
-from games.serializers import GameListSerializer, GameDetailSerializer
+from games.serializers_backup import GameListSerializer, GameDetailSerializer
 from games.services.game_service import GameService
 from .services.anomaly_detector import AnomalyDetector
 

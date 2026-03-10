@@ -8,7 +8,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from django.utils import timezone
 
 from ..models import FriendRoom, Game
-from .serializers.friend_room import (
+from ..serializers_friend import (
     FriendRoomCreateSerializer,
     FriendRoomSerializer,
     JoinRoomSerializer

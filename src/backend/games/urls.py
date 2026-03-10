@@ -4,7 +4,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import GameViewSet, UserGamesViewSet
+from .views import (
+    GameViewSet,
+    UserGamesViewSet,
+    FriendRoomViewSet,
+    friend_room_join_view,
+    friend_room_my_rooms_view,
+    friend_room_active_rooms_view,
+)
 from .spectator_views import SpectatorViewSet, get_spectator_info
 from .chat_views import ChatMessageViewSet, send_chat_message, get_chat_history
 from .ranking_views import (
@@ -18,12 +25,6 @@ from .ranking_views import (
     cleanup_expired_cache,
 )
 from .management_api import GameManagementViewSet
-from .views.friend_room_views import (
-    FriendRoomViewSet,
-    friend_room_join_view,
-    friend_room_my_rooms_view,
-    friend_room_active_rooms_view,
-)
 
 router = DefaultRouter()
 router.register(r'games', GameViewSet, basename='game')
@@ -31,12 +32,13 @@ router.register(r'users/(?P<user_id>[^/.]+)/games', UserGamesViewSet, basename='
 router.register(r'games', SpectatorViewSet, basename='spectator')
 router.register(r'chat', ChatMessageViewSet, basename='chat')
 router.register(r'management/games', GameManagementViewSet, basename='game-management')
-router.register(r'friend/rooms', FriendRoomViewSet, basename='friend-room')
+# 注意：FriendRoomViewSet 不使用 router，而是使用独立的路由
 
 urlpatterns = [
     path('', include(router.urls)),
-    # 好友对战房间
-    path('friend/create/', friend_room_my_rooms_view, name='friend-room-create'),
+    # 好友对战房间 - 独立端点
+    path('friend/create/', FriendRoomViewSet.as_view({'post': 'create'}), name='friend-room-create'),
+    path('friend/<str:room_code>/', FriendRoomViewSet.as_view({'get': 'retrieve'}), name='friend-room-detail'),
     path('friend/join/', friend_room_join_view, name='friend-room-join'),
     path('friend/my-rooms/', friend_room_my_rooms_view, name='friend-room-my-rooms'),
     path('friend/active-rooms/', friend_room_active_rooms_view, name='friend-room-active-rooms'),

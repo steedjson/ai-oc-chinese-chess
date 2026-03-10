@@ -11,6 +11,8 @@ import {
   MatchmakingPage,
   ProfilePage,
   LeaderboardPage,
+  CreateRoomPage,
+  JoinRoomPage,
 } from '@/pages';
 import './styles/index.css';
 
@@ -184,6 +186,22 @@ const App: React.FC = () => {
             element={
               <MainLayout>
                 <LeaderboardPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/games/friend/create/"
+            element={
+              <MainLayout>
+                <CreateRoomPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/games/friend/join/"
+            element={
+              <MainLayout>
+                <JoinRoomPage />
               </MainLayout>
             }
           />

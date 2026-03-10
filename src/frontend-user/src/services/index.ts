@@ -7,3 +7,4 @@ export { default as rankingService } from './ranking.service';
 export { default as userService } from './user.service';
 export { default as getWebSocketService, WebSocketService } from './websocket.service';
 export * as chatService from './chat.service';
+export { default as friendService } from './friend.service';

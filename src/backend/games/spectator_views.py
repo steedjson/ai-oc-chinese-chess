@@ -14,7 +14,7 @@ from django.db import models as django_models
 
 from .models import Game
 from .spectator import Spectator, SpectatorManager, SpectatorStatus
-from .serializers import GameListSerializer
+from .serializers_backup import GameListSerializer
 
 
 class SpectatorViewSet(viewsets.ViewSet):

@@ -22,9 +22,15 @@ def setup_django():
     django.setup()
 
 
+# 禁用测试数据库序列化以避免表不存在的问题
+@pytest.fixture(scope='session')
+def django_db_use_migrations():
+    return True
+
+
 @pytest.fixture
 def api_client():
-    """API 客户端夹具"""
+    """API 客户端"""
     from rest_framework.test import APIClient
     return APIClient()
 

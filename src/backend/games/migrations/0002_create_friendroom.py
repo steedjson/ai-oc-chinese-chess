@@ -32,12 +32,6 @@ class Migration(migrations.Migration):
                 'verbose_name': '好友对战房间',
                 'verbose_name_plural': '好友对战房间',
                 'ordering': ['-created_at'],
-                'indexes': [
-                    models.Index(fields=['room_code'], name='games_frien_room_co_14b78b_idx'),
-                    models.Index(fields=['status'], name='games_frien_status_1e93be_idx'),
-                    models.Index(fields=['creator'], name='games_frien_creator_4eb3de_idx'),
-                    models.Index(fields=['expires_at'], name='games_frien_expires_fe1df0_idx'),
-                ],
             },
         ),
     ]

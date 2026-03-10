@@ -265,3 +265,13 @@ export type {
 } from './chat';
 
 export { ALLOWED_EMOJIS } from './chat';
+
+// 好友对战相关类型
+export type {
+  FriendRoom,
+  FriendRoomStatus,
+  CreateRoomRequest,
+  JoinRoomRequest,
+  JoinRoomResponse,
+  RoomListResponse,
+} from './friend';
