@@ -12,6 +12,7 @@ from .views import (
     friend_room_my_rooms_view,
     friend_room_active_rooms_view,
 )
+from .undo_views import UndoRequestView, UndoRespondView, UndoHistoryView
 from .spectator_views import SpectatorViewSet, get_spectator_info
 from .chat_views import ChatMessageViewSet, send_chat_message, get_chat_history
 from .ranking_views import (
@@ -61,4 +62,9 @@ urlpatterns = [
     # 管理端点
     path('ranking/admin/refresh-cache/', refresh_ranking_cache, name='ranking-refresh-cache'),
     path('ranking/admin/cleanup-cache/', cleanup_expired_cache, name='ranking-cleanup-cache'),
+    
+    # 悔棋功能端点
+    path('games/<int:game_id>/undo/request/', UndoRequestView.as_view(), name='undo-request'),
+    path('games/<int:game_id>/undo/respond/', UndoRespondView.as_view(), name='undo-respond'),
+    path('games/<int:game_id>/undo/requests/', UndoHistoryView.as_view(), name='undo-history'),
 ]

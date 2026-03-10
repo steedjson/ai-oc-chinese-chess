@@ -119,6 +119,20 @@ class Game(models.Model):
         verbose_name='是否计分'
     )
     
+    # 悔棋配置
+    undo_limit = models.IntegerField(
+        default=3,
+        verbose_name='悔棋次数限制'
+    )
+    undo_count_red = models.IntegerField(
+        default=0,
+        verbose_name='红方已用悔棋次数'
+    )
+    undo_count_black = models.IntegerField(
+        default=0,
+        verbose_name='黑方已用悔棋次数'
+    )
+    
     # 超时信息
     timeout_seconds = models.IntegerField(
         default=7200,  # 2 小时
