@@ -6,6 +6,7 @@ from .game_move import GameMove
 from .game_log import GameLog, GameLogQuerySet, GameLogManager
 from .friend_room import FriendRoom
 from .undo_request import UndoRequest
+from .game_share import GameShare
 
 __all__ = [
     'Game',
@@ -15,4 +16,5 @@ __all__ = [
     'GameLogManager',
     'FriendRoom',
     'UndoRequest',
+    'GameShare',
 ]

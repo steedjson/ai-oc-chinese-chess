@@ -13,6 +13,14 @@ from .views import (
     friend_room_active_rooms_view,
 )
 from .undo_views import UndoRequestView, UndoRespondView, UndoHistoryView
+from .share_views import (
+    GameShareCreateView,
+    GameSharesListView,
+    share_detail_view,
+    ShareVerifyView,
+    ShareDeactivateView,
+    MySharesView,
+)
 from .spectator_views import SpectatorViewSet, get_spectator_info
 from .chat_views import ChatMessageViewSet, send_chat_message, get_chat_history
 from .ranking_views import (
@@ -67,4 +75,12 @@ urlpatterns = [
     path('games/<int:game_id>/undo/request/', UndoRequestView.as_view(), name='undo-request'),
     path('games/<int:game_id>/undo/respond/', UndoRespondView.as_view(), name='undo-respond'),
     path('games/<int:game_id>/undo/requests/', UndoHistoryView.as_view(), name='undo-history'),
+    
+    # 棋局分享功能端点
+    path('games/<int:game_id>/share/', GameShareCreateView.as_view(), name='game-share-create'),
+    path('games/<int:game_id>/shares/', GameSharesListView.as_view(), name='game-shares-list'),
+    path('share/<str:token>/', share_detail_view, name='share-detail'),
+    path('share/<str:token>/verify/', ShareVerifyView.as_view(), name='share-verify'),
+    path('share/<int:share_id>/', ShareDeactivateView.as_view(), name='share-deactivate'),
+    path('shares/my/', MySharesView.as_view(), name='my-shares'),
 ]
