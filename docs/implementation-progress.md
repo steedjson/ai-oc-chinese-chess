@@ -1,8 +1,8 @@
-# 游戏对局系统 TDD 实现进度
+# 中国象棋项目实现进度
 
-**阶段**: 5.2 - 游戏对局系统 TDD 实现  
-**日期**: 2026-03-04  
-**状态**: ✅ 基本完成
+**阶段**: 5.2-6.5 - 核心功能实现  
+**日期**: 2026-03-05  
+**状态**: ✅ 聊天系统已完成
 
 ---
 
@@ -207,6 +207,65 @@
 4. **实现棋谱记录服务** (优先级：低)
    - PGN 导出
    - 棋谱回放
+
+---
+
+## 阶段 6+ 高级功能进度
+
+### 6.1 棋谱导出（PGN 格式）✅
+
+**状态**: ✅ 已完成  
+**文档**: 见 `todo.md`
+
+### 6.2 中文记谱转换 ✅
+
+**状态**: ✅ 已完成  
+**文档**: 见 `todo.md`
+
+### 6.3 残局挑战模式 ⏳
+
+**状态**: ⏳ 待执行  
+**预计工时**: 8h
+
+### 6.4 观战功能 ✅
+
+**状态**: ✅ 已完成  
+**文档**: `spectator-feature.md`  
+**实现内容**:
+- Spectator 模型
+- REST API（加入/离开/踢出）
+- WebSocket 实时推送
+- 权限控制
+
+### 6.5 聊天系统 ✅
+
+**状态**: ✅ 已完成  
+**文档**: `chat-feature.md`  
+**实现内容**:
+- ChatMessage 模型（消息内容、发送者、对局/房间、时间戳）
+- REST API（发送消息、获取历史、消息分页、删除消息）
+- WebSocket Consumer（实时推送、房间管理、消息限流）
+- 功能特性：
+  - 对局内聊天（玩家之间）
+  - 观战聊天（观战者之间）
+  - 消息历史记录
+  - 简单表情支持（24 种常用表情）
+  - 消息限流（2 秒间隔，防刷屏）
+- 测试覆盖：
+  - 单元测试（Model、API）
+  - WebSocket 测试
+
+**创建/修改的文件**:
+- `src/backend/games/chat.py` - 数据模型和管理器
+- `src/backend/games/chat_views.py` - REST API 视图
+- `src/backend/games/chat_consumer.py` - WebSocket Consumer
+- `src/backend/games/migrations/0003_chat_message.py` - 数据库迁移
+- `src/backend/games/urls.py` - URL 路由（已更新）
+- `src/backend/games/routing.py` - WebSocket 路由（已更新）
+- `tests/unit/games/test_chat.py` - 模型测试
+- `tests/unit/games/test_chat_views.py` - API 测试
+- `tests/unit/games/test_chat_consumer.py` - WebSocket 测试
+- `docs/chat-feature.md` - 功能文档
 
 ---
 

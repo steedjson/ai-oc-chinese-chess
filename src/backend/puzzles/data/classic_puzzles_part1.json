@@ -1,0 +1,152 @@
+{
+  "puzzles": [
+    {
+      "title": "单车寡士",
+      "description": "红方单车对黑方单士，经典残局",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/9/9/9/R3K4 w - - 0 1",
+      "difficulty": 1,
+      "move_limit": 10,
+      "time_limit": 120,
+      "solution": [
+        {"from": "a1", "to": "a4", "piece": "R"},
+        {"from": "a4", "to": "a6", "piece": "R"},
+        {"from": "a6", "to": "e6", "piece": "R"}
+      ],
+      "hint": "利用单车控制中线，逼迫黑将移动"
+    },
+    {
+      "title": "双兵胜单士",
+      "description": "红方双兵对黑方单士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/4P4/9/9/9/4P4/9/4K4 w - - 0 1",
+      "difficulty": 1,
+      "move_limit": 15,
+      "time_limit": 180,
+      "solution": [
+        {"from": "e5", "to": "e6", "piece": "P"},
+        {"from": "e6", "to": "e7", "piece": "P"}
+      ],
+      "hint": "双兵连环推进，黑士无法兼顾"
+    },
+    {
+      "title": "马擒单士",
+      "description": "红方马对黑方单士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/9/4N4/9/4K4 w - - 0 1",
+      "difficulty": 2,
+      "move_limit": 20,
+      "time_limit": 240,
+      "solution": [
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "d5", "to": "c7", "piece": "N"},
+        {"from": "c7", "to": "e6", "piece": "N"}
+      ],
+      "hint": "马走日字，控制黑将活动空间"
+    },
+    {
+      "title": "炮士胜双士",
+      "description": "红方炮单士对黑方双士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4C4/4A4/9/4K4 w - - 0 1",
+      "difficulty": 2,
+      "move_limit": 25,
+      "time_limit": 300,
+      "solution": [
+        {"from": "e7", "to": "e5", "piece": "C"},
+        {"from": "e5", "to": "h5", "piece": "C"}
+      ],
+      "hint": "炮借士力，攻击黑方士角"
+    },
+    {
+      "title": "车兵胜车士",
+      "description": "红方车兵对黑方车单士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/4P4/4A4/4K1r2 w - - 0 1",
+      "difficulty": 3,
+      "move_limit": 30,
+      "time_limit": 360,
+      "solution": [
+        {"from": "e8", "to": "e6", "piece": "R"},
+        {"from": "e6", "to": "h6", "piece": "R"},
+        {"from": "h6", "to": "h9", "piece": "R"}
+      ],
+      "hint": "车兵配合，先消灭黑车"
+    },
+    {
+      "title": "双马饮泉",
+      "description": "红方双马攻击黑方九宫",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4N4/4N4/9/4K4 w - - 0 1",
+      "difficulty": 3,
+      "move_limit": 20,
+      "time_limit": 300,
+      "solution": [
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "f4", "piece": "N"},
+        {"from": "d5", "to": "c7", "piece": "N"}
+      ],
+      "hint": "双马配合，形成杀势"
+    },
+    {
+      "title": "车马冷着",
+      "description": "红方车马配合攻击",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/4N4/9/4K4 w - - 0 1",
+      "difficulty": 4,
+      "move_limit": 25,
+      "time_limit": 360,
+      "solution": [
+        {"from": "e8", "to": "e5", "piece": "R"},
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e5", "to": "h5", "piece": "R"}
+      ],
+      "hint": "车马配合，控制要道"
+    },
+    {
+      "title": "炮兵巧胜士象全",
+      "description": "红方炮兵对黑方士象全",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/4b4/9/4B4/9/4C4/4P4/9/4K4 w - - 0 1",
+      "difficulty": 4,
+      "move_limit": 35,
+      "time_limit": 420,
+      "solution": [
+        {"from": "e7", "to": "e4", "piece": "C"},
+        {"from": "e5", "to": "e6", "piece": "P"},
+        {"from": "e4", "to": "h4", "piece": "C"}
+      ],
+      "hint": "炮兵配合，破士象防线"
+    },
+    {
+      "title": "车炮士胜车双士",
+      "description": "红方车炮士对黑方车双士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/4C4/4A4/4K4 w - - 0 1",
+      "difficulty": 5,
+      "move_limit": 40,
+      "time_limit": 480,
+      "solution": [
+        {"from": "e8", "to": "e6", "piece": "R"},
+        {"from": "e7", "to": "e5", "piece": "C"},
+        {"from": "e6", "to": "h6", "piece": "R"}
+      ],
+      "hint": "车炮配合，攻击黑方薄弱环节"
+    },
+    {
+      "title": "马炮胜士象全",
+      "description": "红方马炮对黑方士象全",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/4b4/9/4B4/9/4C4/4N4/9/4K4 w - - 0 1",
+      "difficulty": 5,
+      "move_limit": 45,
+      "time_limit": 540,
+      "solution": [
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "e4", "piece": "C"},
+        {"from": "d5", "to": "c7", "piece": "N"}
+      ],
+      "hint": "马炮配合，破士象全"
+    }
+  ]
+}

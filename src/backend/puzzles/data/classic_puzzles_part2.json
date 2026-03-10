@@ -1,0 +1,157 @@
+{
+  "puzzles": [
+    {
+      "title": "车马兵胜车马士",
+      "description": "红方车马兵对黑方车马单士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/4P4/4R4/4N4/4A4/4K1r1n w - - 0 1",
+      "difficulty": 6,
+      "move_limit": 50,
+      "time_limit": 600,
+      "solution": [
+        {"from": "e8", "to": "e5", "piece": "R"},
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e5", "to": "h5", "piece": "R"}
+      ],
+      "hint": "车马兵三子配合，逐步推进"
+    },
+    {
+      "title": "双炮兵胜双士象",
+      "description": "红方双炮兵对黑方双士象",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/4b4/9/4B4/9/4C4/4P4/4C4/4K4 w - - 0 1",
+      "difficulty": 6,
+      "move_limit": 45,
+      "time_limit": 540,
+      "solution": [
+        {"from": "e7", "to": "e5", "piece": "C"},
+        {"from": "e6", "to": "e5", "piece": "P"},
+        {"from": "e5", "to": "h5", "piece": "C"}
+      ],
+      "hint": "双炮连环，兵助攻"
+    },
+    {
+      "title": "车马炮三子归边",
+      "description": "红方车马炮三子攻击一侧",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/4C4/4N4/4K4 w - - 0 1",
+      "difficulty": 7,
+      "move_limit": 35,
+      "time_limit": 480,
+      "solution": [
+        {"from": "e8", "to": "h8", "piece": "R"},
+        {"from": "e7", "to": "f5", "piece": "N"},
+        {"from": "e6", "to": "h6", "piece": "C"}
+      ],
+      "hint": "三子集中一侧，形成绝杀"
+    },
+    {
+      "title": "双车错",
+      "description": "红方双车交替攻击",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/9/4R4/4K4 w - - 0 1",
+      "difficulty": 7,
+      "move_limit": 30,
+      "time_limit": 420,
+      "solution": [
+        {"from": "e8", "to": "h8", "piece": "R"},
+        {"from": "e7", "to": "h7", "piece": "R"},
+        {"from": "h8", "to": "h9", "piece": "R"}
+      ],
+      "hint": "双车交替将军，黑将无法逃脱"
+    },
+    {
+      "title": "马炮兵巧胜车士",
+      "description": "红方马炮兵对黑方车单士",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/4P4/4C4/4N4/4A4/4K1r2 w - - 0 1",
+      "difficulty": 8,
+      "move_limit": 55,
+      "time_limit": 660,
+      "solution": [
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "e5", "piece": "C"},
+        {"from": "e5", "to": "e6", "piece": "P"}
+      ],
+      "hint": "马炮兵巧妙配合，以少胜多"
+    },
+    {
+      "title": "车双兵破车士象全",
+      "description": "红方车双兵对黑方车士象全",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/4b4/9/4B4/4P4/4R4/4P4/9/4K1r2 w - - 0 1",
+      "difficulty": 8,
+      "move_limit": 60,
+      "time_limit": 720,
+      "solution": [
+        {"from": "e8", "to": "e5", "piece": "R"},
+        {"from": "e6", "to": "e7", "piece": "P"},
+        {"from": "e5", "to": "h5", "piece": "R"}
+      ],
+      "hint": "车双兵联合进攻，破士象全"
+    },
+    {
+      "title": "双马双兵胜双车",
+      "description": "红方双马双兵对黑方双车",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/4P4/4N4/4P4/4N4/4K1r1r w - - 0 1",
+      "difficulty": 9,
+      "move_limit": 70,
+      "time_limit": 900,
+      "solution": [
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "f4", "piece": "N"},
+        {"from": "e5", "to": "e6", "piece": "P"}
+      ],
+      "hint": "双马双兵配合，对抗双车"
+    },
+    {
+      "title": "车马炮兵联攻",
+      "description": "红方车马炮兵四子联攻",
+      "source": "经典残局",
+      "fen_initial": "4k4/9/9/9/9/4P4/4R4/4C4/4N4/4K4 w - - 0 1",
+      "difficulty": 9,
+      "move_limit": 50,
+      "time_limit": 720,
+      "solution": [
+        {"from": "e8", "to": "e5", "piece": "R"},
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "h6", "piece": "C"},
+        {"from": "e5", "to": "e6", "piece": "P"}
+      ],
+      "hint": "四子配合，形成绝杀网"
+    },
+    {
+      "title": "七星聚会",
+      "description": "经典古谱七星聚会简化版",
+      "source": "古谱七星聚会",
+      "fen_initial": "4k4/9/9/9/9/9/4R4/4C4/4N4/4K1r1n w - - 0 1",
+      "difficulty": 10,
+      "move_limit": 80,
+      "time_limit": 1200,
+      "solution": [
+        {"from": "e8", "to": "e4", "piece": "R"},
+        {"from": "e7", "to": "d5", "piece": "N"},
+        {"from": "e6", "to": "e5", "piece": "C"},
+        {"from": "e4", "to": "h4", "piece": "R"}
+      ],
+      "hint": "古谱名局，需要精准计算"
+    },
+    {
+      "title": "野马操田",
+      "description": "经典古谱野马操田简化版",
+      "source": "古谱野马操田",
+      "fen_initial": "4k4/9/9/9/9/9/4N4/4R4/4C4/4K1r2 w - - 0 1",
+      "difficulty": 10,
+      "move_limit": 90,
+      "time_limit": 1500,
+      "solution": [
+        {"from": "e7", "to": "f5", "piece": "N"},
+        {"from": "e8", "to": "e5", "piece": "R"},
+        {"from": "e6", "to": "h6", "piece": "C"},
+        {"from": "e5", "to": "h5", "piece": "R"}
+      ],
+      "hint": "古谱名局，变化复杂"
+    }
+  ]
+}

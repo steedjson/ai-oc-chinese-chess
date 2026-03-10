@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Avatar, Typography, Statistic, Progress, Table, Tag, Button, Space, Tabs } from 'antd';
+import { Card, Row, Col, Avatar, Typography, Statistic, Progress, Table, Tag, Button, Space, Tabs, Alert } from 'antd';
 import {
   UserOutlined,
   TrophyOutlined,
@@ -14,32 +14,88 @@ import type { User } from '@/types';
 
 const { Title, Text } = Typography;
 
+interface GameHistoryItem {
+  key: string;
+  opponent: string;
+  result: 'win' | 'loss' | 'draw';
+  ratingChange: number;
+  date: string;
+}
+
+interface GameHistoryData {
+  results: Array<{
+    id: string;
+    opponent: {
+      username: string;
+      rating: number;
+    };
+    result: 'win' | 'loss' | 'draw';
+    rating_change: number;
+    created_at: string;
+  }>;
+  pagination: {
+    page: number;
+    page_size: number;
+    total_count: number;
+  };
+}
+
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser } = useAuthStore();
-  const [user] = useState<User | null>(authUser);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<{ win_rate: number } | null>(null);
+  const [user, setUser] = useState<User | null>(authUser);
+  const [stats, setStats] = useState<{
+    total_games: number;
+    wins: number;
+    losses: number;
+    draws: number;
+    win_rate: number;
+    current_rating: number;
+  } | null>(null);
+  const [gameHistory, setGameHistory] = useState<GameHistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadUserData = useCallback(async () => {
     if (!authUser) return;
     
     try {
       setLoading(true);
+      setError(null);
       
+      // 获取最新用户资料
+      const profileResult = await userService.getProfile();
+      if (profileResult.success && profileResult.data) {
+        const userData = profileResult.data as unknown as User;
+        setUser(userData);
+      }
+
       // 获取用户统计
       const statsResult = await userService.getUserStats();
       if (statsResult.success && statsResult.data) {
         setStats(statsResult.data);
       }
 
-      // 获取排名历史（预留）
-      // const historyResult = await rankingService.getRankHistory(30);
-      // if (historyResult.success && historyResult.data) {
-      //   setRankHistory(historyResult.data);
-      // }
-    } catch {
-      console.error('Failed to load user data');
+      // 获取对局历史
+      setHistoryLoading(true);
+      const gamesResult = await userService.getUserGames(authUser.id);
+      if (gamesResult.success && gamesResult.data) {
+        const historyData = gamesResult.data as unknown as GameHistoryData;
+        const formattedHistory: GameHistoryItem[] = historyData.results.map((game) => ({
+          key: game.id,
+          opponent: game.opponent.username,
+          result: game.result,
+          ratingChange: game.rating_change,
+          date: new Date(game.created_at).toLocaleDateString('zh-CN'),
+        }));
+        setGameHistory(formattedHistory);
+      }
+      setHistoryLoading(false);
+    } catch (err) {
+      console.error('Failed to load user data:', err);
+      setError('加载用户数据失败，请稍后重试');
+      setHistoryLoading(false);
     } finally {
       setLoading(false);
     }
@@ -62,9 +118,10 @@ const ProfilePage: React.FC = () => {
       title: '结果',
       dataIndex: 'result',
       key: 'result',
-      render: (result: string) => {
-        const color = result === '胜' ? 'green' : result === '负' ? 'red' : 'gray';
-        return <Tag color={color}>{result}</Tag>;
+      render: (result: 'win' | 'loss' | 'draw') => {
+        const colorMap = { win: 'green', loss: 'red', draw: 'gray' };
+        const textMap = { win: '胜', loss: '负', draw: '和' };
+        return <Tag color={colorMap[result]}>{textMap[result]}</Tag>;
       },
     },
     {
@@ -72,7 +129,7 @@ const ProfilePage: React.FC = () => {
       dataIndex: 'ratingChange',
       key: 'ratingChange',
       render: (change: number) => (
-        <Text type={change > 0 ? 'success' : 'danger'}>
+        <Text type={change > 0 ? 'success' : change < 0 ? 'danger' : undefined}>
           {change > 0 ? '+' : ''}{change}
         </Text>
       ),
@@ -82,14 +139,6 @@ const ProfilePage: React.FC = () => {
       dataIndex: 'date',
       key: 'date',
     },
-  ];
-
-  const mockGameHistory = [
-    { key: '1', opponent: '张三', result: '胜', ratingChange: 15, date: '2026-03-03' },
-    { key: '2', opponent: '李四', result: '负', ratingChange: -12, date: '2026-03-02' },
-    { key: '3', opponent: '王五', result: '胜', ratingChange: 18, date: '2026-03-01' },
-    { key: '4', opponent: '赵六', result: '和', ratingChange: 2, date: '2026-02-28' },
-    { key: '5', opponent: '钱七', result: '胜', ratingChange: 16, date: '2026-02-27' },
   ];
 
   if (!user) {
@@ -225,12 +274,28 @@ const ProfilePage: React.FC = () => {
             key: 'history',
             label: '对局历史',
             children: (
-              <Table
-                columns={gameHistoryColumns}
-                dataSource={mockGameHistory}
-                pagination={{ pageSize: 5 }}
-                loading={loading}
-              />
+              <>
+                {error && (
+                  <Alert
+                    message={error}
+                    type="error"
+                    showIcon
+                    className="mb-4"
+                    action={
+                      <Button size="small" type="primary" onClick={loadUserData}>
+                        重试
+                      </Button>
+                    }
+                  />
+                )}
+                <Table
+                  columns={gameHistoryColumns}
+                  dataSource={gameHistory}
+                  pagination={{ pageSize: 5 }}
+                  loading={historyLoading}
+                  locale={{ emptyText: '暂无对局记录' }}
+                />
+              </>
             ),
           },
         ]}

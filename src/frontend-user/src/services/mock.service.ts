@@ -337,15 +337,71 @@ export const mockUser = {
   
   getStats: async (userId: number) => {
     const user = mockUsers[userId] || mockUsers[1];
+    const winRate = user.total_games > 0 ? Math.round((user.wins / user.total_games) * 100 * 100) / 100 : 0;
     return createMockResponse({
-      user,
-      stats: {
-        total_games: user.total_games,
-        wins: user.wins,
-        losses: user.losses,
-        draws: user.draws,
-        win_rate: user.total_games > 0 ? user.wins / user.total_games : 0,
-        rating: user.rating,
+      total_games: user.total_games,
+      wins: user.wins,
+      losses: user.losses,
+      draws: user.draws,
+      win_rate: winRate,
+      current_rating: user.rating,
+      highest_rating: user.rating,
+    });
+  },
+  
+  getUserGames: async (userId: number, page: number = 1, pageSize: number = 20) => {
+    // 使用 mockGames 模拟对局历史
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const userGames = mockGames.slice(start, end);
+    
+    // 构建符合后端 API 格式的响应
+    const gamesData = userGames.map((game) => {
+      const isRed = game.red_player.id === userId;
+      const opponent = isRed ? game.black_player : game.red_player;
+      
+      let result: 'win' | 'loss' | 'draw';
+      if (game.winner === 'draw') {
+        result = 'draw';
+      } else if ((isRed && game.winner === 'red') || (!isRed && game.winner === 'black')) {
+        result = 'win';
+      } else {
+        result = 'loss';
+      }
+      
+      // 简化版天梯分变化
+      let ratingChange = 0;
+      if (game.status === 'finished') {
+        if (result === 'win') ratingChange = 15;
+        else if (result === 'loss') ratingChange = -12;
+        else ratingChange = 2;
+      }
+      
+      return {
+        id: game.id,
+        opponent: {
+          id: opponent.id,
+          username: opponent.username,
+          avatar_url: opponent.avatar_url,
+          rating: opponent.rating,
+        },
+        result,
+        rating_change: ratingChange,
+        is_red: isRed,
+        game_type: game.game_type,
+        created_at: game.created_at,
+      };
+    });
+    
+    return createMockResponse({
+      results: gamesData,
+      pagination: {
+        page,
+        page_size: pageSize,
+        total_count: mockGames.length,
+        total_pages: Math.ceil(mockGames.length / pageSize),
+        has_next: end < mockGames.length,
+        has_prev: page > 1,
       },
     });
   },

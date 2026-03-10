@@ -9,9 +9,7 @@ import {
   Row,
   Col,
   Statistic,
-  Badge,
   message,
-  Tooltip,
   Modal,
   Empty,
 } from 'antd';
@@ -27,7 +25,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchmakingApi } from '../../api/matchmaking';
 import type { MatchmakingRecord } from '../../types';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
+const { Text } = Typography;
 
 const MatchmakingPage: React.FC = () => {
   const [page, setPage] = useState(1);
@@ -208,6 +207,46 @@ const MatchmakingPage: React.FC = () => {
           </Button>
         </Space>
       </div>
+
+      {/* 状态筛选 */}
+      <Space style={{ marginBottom: 16 }}>
+        <Tag>状态筛选:</Tag>
+        <Tag
+          color={statusFilter === undefined ? 'blue' : 'default'}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setStatusFilter(undefined)}
+        >
+          全部
+        </Tag>
+        <Tag
+          color={statusFilter === 'pending' ? 'gold' : 'default'}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setStatusFilter('pending')}
+        >
+          等待中
+        </Tag>
+        <Tag
+          color={statusFilter === 'matched' ? 'green' : 'default'}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setStatusFilter('matched')}
+        >
+          已匹配
+        </Tag>
+        <Tag
+          color={statusFilter === 'completed' ? 'blue' : 'default'}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setStatusFilter('completed')}
+        >
+          已完成
+        </Tag>
+        <Tag
+          color={statusFilter === 'cancelled' ? 'red' : 'default'}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setStatusFilter('cancelled')}
+        >
+          已取消
+        </Tag>
+      </Space>
 
       {/* 实时统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

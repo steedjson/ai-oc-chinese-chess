@@ -4,6 +4,7 @@ import { Card, Row, Col, Slider, Button, Typography, Spin, message, Space } from
 import { RobotOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useGameStore, useAuthStore } from '@/stores';
 import { ChessBoard, GameControls } from '@/components/game';
+import { ChatPanel } from '@/components/chat';
 import { aiService, gameService } from '@/services';
 import { getWebSocketService } from '@/services';
 import type { BoardState, Move } from '@/types';
@@ -290,59 +291,72 @@ const AIGamePage: React.FC = () => {
   );
 
   // 渲染游戏界面
-  const renderGame = () => (
-    <Row gutter={[24, 24]} justify="center">
-      {/* 棋盘 */}
-      <Col xs={24} lg={12}>
-        <Card className="card-chinese">
-          <div className="flex justify-center">
-            {isAILoading && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                <Spin size="large" tip="AI 思考中..." />
-              </div>
-            )}
-            <ChessBoard
-              boardState={boardState || { fen: INITIAL_FEN, turn: 'red', pieces: [], in_check: false, game_over: false }}
-              selectedPosition={selectedPosition}
-              validMoves={validMoves}
-              onPieceClick={handlePieceClick}
-              onMove={executeMove}
-              orientation="red"
-              disabled={!isMyTurn || gameOver || isAILoading}
-            />
-          </div>
-        </Card>
-      </Col>
-
-      {/* 控制面板 */}
-      <Col xs={24} lg={6}>
-        <Space direction="vertical" className="w-full" size="large">
-          {/* 游戏信息 */}
+  const renderGame = () => {
+    const token = localStorage.getItem('access_token') || '';
+    
+    return (
+      <Row gutter={[24, 24]} justify="center">
+        {/* 棋盘 */}
+        <Col xs={24} lg={12}>
           <Card className="card-chinese">
-            <div className="text-center">
-              <Text strong className="text-lg">
-                {isMyTurn ? '轮到你走棋' : 'AI 思考中...'}
-              </Text>
-              <div className="mt-2">
-                <Text type="secondary">
-                  难度：{DIFFICULTY_LEVELS[difficulty - 1].name} (Lv.{difficulty})
-                </Text>
-              </div>
+            <div className="flex justify-center">
+              {isAILoading && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                  <Spin size="large" tip="AI 思考中..." />
+                </div>
+              )}
+              <ChessBoard
+                boardState={boardState || { fen: INITIAL_FEN, turn: 'red', pieces: [], in_check: false, game_over: false }}
+                selectedPosition={selectedPosition}
+                validMoves={validMoves}
+                onPieceClick={handlePieceClick}
+                onMove={executeMove}
+                orientation="red"
+                disabled={!isMyTurn || gameOver || isAILoading}
+              />
             </div>
           </Card>
+        </Col>
 
-          {/* 游戏控制 */}
-          <GameControls
-            onUndo={handleUndo}
-            onResign={handleResign}
-            onDraw={handleDraw}
-            onHome={handleHome}
-            disabled={!gameStarted || isAILoading}
-          />
-        </Space>
-      </Col>
-    </Row>
-  );
+        {/* 控制面板 + 聊天面板 */}
+        <Col xs={24} lg={6}>
+          <Space direction="vertical" className="w-full" size="large">
+            {/* 游戏信息 */}
+            <Card className="card-chinese">
+              <div className="text-center">
+                <Text strong className="text-lg">
+                  {isMyTurn ? '轮到你走棋' : 'AI 思考中...'}
+                </Text>
+                <div className="mt-2">
+                  <Text type="secondary">
+                    难度：{DIFFICULTY_LEVELS[difficulty - 1].name} (Lv.{difficulty})
+                  </Text>
+                </div>
+              </div>
+            </Card>
+
+            {/* 游戏控制 */}
+            <GameControls
+              onUndo={handleUndo}
+              onResign={handleResign}
+              onDraw={handleDraw}
+              onHome={handleHome}
+              disabled={!gameStarted || isAILoading}
+            />
+
+            {/* 聊天面板 */}
+            {currentGame && (
+              <ChatPanel
+                gameId={currentGame.id}
+                chatType="game"
+                token={token}
+              />
+            )}
+          </Space>
+        </Col>
+      </Row>
+    );
+  };
 
   if (!gameStarted) {
     return renderDifficultySelector();

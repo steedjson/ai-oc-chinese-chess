@@ -1,0 +1,276 @@
+/**
+ * 棋盘动画样式
+ * 包含走棋、吃子、将军、游戏结束等动画效果
+ */
+
+/* ==================== 走棋动画 ==================== */
+
+/* 棋子移动过渡 */
+.chess-piece-moving {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 移动轨迹高亮 */
+.move-trail {
+  animation: trailFade 0.5s ease-out forwards;
+}
+
+@keyframes trailFade {
+  0% {
+    opacity: 0.6;
+    background-color: rgba(59, 130, 246, 0.4);
+  }
+  100% {
+    opacity: 0;
+    background-color: transparent;
+  }
+}
+
+/* ==================== 吃子特效 ==================== */
+
+/* 被吃棋子消失动画 */
+.piece-captured {
+  animation: captureDisappear 0.4s ease-in forwards;
+}
+
+@keyframes captureDisappear {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* 吃子位置闪光 */
+.capture-flash {
+  animation: captureFlash 0.5s ease-out;
+}
+
+@keyframes captureFlash {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.5);
+  }
+}
+
+/* ==================== 将军提示动画 ==================== */
+
+/* 棋盘边框脉冲 */
+.board-check {
+  animation: checkPulse 1s ease-in-out infinite;
+  box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes checkPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 40px 8px rgba(239, 68, 68, 0.8);
+  }
+}
+
+/* 将军文字提示 */
+.check-alert {
+  animation: checkAlert 0.6s ease-out;
+}
+
+@keyframes checkAlert {
+  0% {
+    transform: scale(0.5) translateY(-20px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 将军文字闪烁 */
+.check-text {
+  animation: checkTextBlink 0.8s ease-in-out infinite;
+  color: #ef4444;
+  font-weight: bold;
+}
+
+@keyframes checkTextBlink {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    opacity: 0.7;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 1);
+  }
+}
+
+/* ==================== 游戏结束动画 ==================== */
+
+/* 胜利方棋子高亮 */
+.piece-winner {
+  animation: winnerGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes winnerGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px 2px rgba(234, 179, 8, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px 6px rgba(234, 179, 8, 0.8);
+    transform: scale(1.05);
+  }
+}
+
+/* 游戏结束弹窗 */
+.game-over-modal {
+  animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  0% {
+    transform: translateY(-100vh) scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(10px) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 游戏结束背景遮罩 */
+.game-over-overlay {
+  animation: overlayFadeIn 0.3s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* 彩带飘落效果 */
+.confetti {
+  animation: confettiFall 3s linear infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(600px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ==================== 选中/高亮动画 ==================== */
+
+/* 选中棋子脉冲 */
+.piece-selected {
+  animation: selectedPulse 1s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px 2px rgba(234, 179, 8, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px 4px rgba(234, 179, 8, 0.7);
+  }
+}
+
+/* 有效走棋位置提示 */
+.valid-move-hint {
+  animation: hintPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
+
+/* 最后走棋位置高亮 */
+.last-move-highlight {
+  animation: lastMoveHighlight 2s ease-in-out;
+}
+
+@keyframes lastMoveHighlight {
+  0%, 100% {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.4);
+  }
+}
+
+/* ==================== 棋盘格子动画 ==================== */
+
+/* 格子 hover 效果 */
+.square-hover {
+  transition: background-color 0.2s ease;
+}
+
+.square-hover:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* ==================== 加载动画 ==================== */
+
+/* 棋子加载骨架屏 */
+.piece-loading {
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ==================== 响应式动画 ==================== */
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -56,7 +56,9 @@ class AIGame(models.Model):
         'users.User',
         on_delete=models.CASCADE,
         related_name='ai_games',
-        help_text="玩家"
+        help_text="玩家",
+        null=True,
+        blank=True
     )
     
     # AI 信息

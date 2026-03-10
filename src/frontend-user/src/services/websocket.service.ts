@@ -27,13 +27,35 @@ interface WebSocketConfig {
   onReconnect?: (attempt: number) => void;
 }
 
+export type ReconnectState = 
+  | 'disconnected'
+  | 'reconnecting'
+  | 'connected'
+  | 'failed';
+
+export interface ReconnectInfo {
+  state: ReconnectState;
+  attempt: number;
+  maxAttempts: number;
+  nextRetryIn?: number; // 毫秒
+}
+
 export class WebSocketService {
   private ws: WebSocket | null = null;
   private url: string = '';
   private config: WebSocketConfig = {};
+  
+  // 重连配置 - 指数退避
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = 10;
+  private baseDelay = 1000; // 1 秒
+  private maxDelay = 30000; // 30 秒
+  private reconnectTimer?: number;
+  
+  // 状态管理
+  private reconnectState: ReconnectState = 'disconnected';
+  private reconnectListeners: ((info: ReconnectInfo) => void)[] = [];
+  
   private heartbeatInterval?: number;
   private isManualClose = false;
 
@@ -44,6 +66,8 @@ export class WebSocketService {
     this.config = config;
     this.isManualClose = false;
     this.reconnectAttempts = 0;
+    this.reconnectState = 'reconnecting';
+    this.notifyReconnectListeners();
 
     const token = getAccessToken();
     const separator = endpoint.includes('?') ? '&' : '?';
@@ -51,6 +75,50 @@ export class WebSocketService {
 
     this.createConnection();
     this.startHeartbeat();
+  }
+
+  /**
+   * 添加重连状态监听器
+   */
+  onReconnectStateChange(listener: (info: ReconnectInfo) => void): () => void {
+    this.reconnectListeners.push(listener);
+    // 立即通知当前状态
+    listener(this.getReconnectInfo());
+    // 返回取消监听函数
+    return () => {
+      const index = this.reconnectListeners.indexOf(listener);
+      if (index > -1) {
+        this.reconnectListeners.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * 通知所有监听器
+   */
+  private notifyReconnectListeners() {
+    const info = this.getReconnectInfo();
+    this.reconnectListeners.forEach(listener => {
+      try {
+        listener(info);
+      } catch (error) {
+        console.error('[WebSocket] Reconnect listener error:', error);
+      }
+    });
+  }
+
+  /**
+   * 获取重连信息
+   */
+  getReconnectInfo(): ReconnectInfo {
+    return {
+      state: this.reconnectState,
+      attempt: this.reconnectAttempts,
+      maxAttempts: this.maxReconnectAttempts,
+      nextRetryIn: this.reconnectState === 'reconnecting' 
+        ? this.calculateDelay() 
+        : undefined,
+    };
   }
 
   /**
@@ -63,6 +131,8 @@ export class WebSocketService {
       this.ws.onopen = () => {
         console.log('[WebSocket] Connected');
         this.reconnectAttempts = 0;
+        this.reconnectState = 'connected';
+        this.notifyReconnectListeners();
         this.config.onOpen?.();
       };
 
@@ -72,8 +142,18 @@ export class WebSocketService {
         this.config.onClose?.(event);
 
         // 自动重连（如果不是手动关闭）
-        if (!this.isManualClose && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.scheduleReconnect();
+        if (!this.isManualClose) {
+          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectState = 'reconnecting';
+            this.scheduleReconnect();
+          } else {
+            this.reconnectState = 'failed';
+            this.notifyReconnectListeners();
+            console.warn('[WebSocket] Max reconnect attempts reached');
+          }
+        } else {
+          this.reconnectState = 'disconnected';
+          this.notifyReconnectListeners();
         }
       };
 
@@ -92,7 +172,13 @@ export class WebSocketService {
       };
     } catch (error) {
       console.error('[WebSocket] Failed to create connection:', error);
-      this.scheduleReconnect();
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.reconnectState = 'reconnecting';
+        this.scheduleReconnect();
+      } else {
+        this.reconnectState = 'failed';
+        this.notifyReconnectListeners();
+      }
     }
   }
 
@@ -109,16 +195,36 @@ export class WebSocketService {
   }
 
   /**
+   * 计算重连延迟（指数退避）
+   */
+  private calculateDelay(): number {
+    const exponentialDelay = this.baseDelay * Math.pow(2, this.reconnectAttempts);
+    // 添加随机抖动（0-1000ms）避免同时重连
+    const jitter = Math.random() * 1000;
+    return Math.min(exponentialDelay + jitter, this.maxDelay);
+  }
+
+  /**
    * 安排重连
    */
   private scheduleReconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+    }
+
     this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
+    const delay = this.calculateDelay();
     
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    console.log(
+      `[WebSocket] Scheduling reconnect in ${Math.round(delay)}ms ` +
+      `(attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`
+    );
     
-    setTimeout(() => {
+    this.notifyReconnectListeners();
+    
+    this.reconnectTimer = window.setTimeout(() => {
       if (!this.isManualClose) {
+        console.log(`[WebSocket] Reconnecting... (attempt ${this.reconnectAttempts})`);
         this.config.onReconnect?.(this.reconnectAttempts);
         this.createConnection();
       }
@@ -200,15 +306,35 @@ export class WebSocketService {
   }
 
   /**
+   * 手动重连
+   */
+  reconnect() {
+    if (this.reconnectState === 'failed' || this.reconnectState === 'disconnected') {
+      console.log('[WebSocket] Manual reconnect triggered');
+      this.reconnectAttempts = 0;
+      this.reconnectState = 'reconnecting';
+      this.notifyReconnectListeners();
+      this.isManualClose = false;
+      this.createConnection();
+    }
+  }
+
+  /**
    * 断开连接
    */
   disconnect() {
     this.isManualClose = true;
     this.stopHeartbeat();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
     if (this.ws) {
       this.ws.close(1000, 'Manual disconnect');
       this.ws = null;
     }
+    this.reconnectState = 'disconnected';
+    this.notifyReconnectListeners();
   }
 
   /**

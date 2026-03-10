@@ -1,0 +1,643 @@
+/**
+ * animations.css - 全局动画样式库
+ * 
+ * 包含中国象棋项目中所有可复用的动画效果和工具类
+ * 
+ * @author OpenClaw 助手
+ * @date 2026-03-06
+ */
+
+/* ============ CSS 变量定义 ============ */
+
+:root {
+  /* 动画时长 */
+  --anim-duration-fast: 150ms;
+  --anim-duration-normal: 300ms;
+  --anim-duration-slow: 500ms;
+  --anim-duration-very-slow: 800ms;
+  
+  /* 缓动函数 */
+  --anim-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --anim-easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --anim-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* 动画速度倍率 (用于用户配置) */
+  --anim-speed-multiplier: 1;
+  
+  /* 颜色变量 */
+  --anim-color-red: #dc2626;
+  --anim-color-black: #1e293b;
+  --anim-color-green: #22c55e;
+  --anim-color-blue: #3b82f6;
+  --anim-color-gold: #f59e0b;
+  --anim-color-orange: #ea580c;
+}
+
+/* ============ 基础动画类 ============ */
+
+/**
+ * 淡入动画
+ */
+.animate-fade-in {
+  animation: fadeIn calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/**
+ * 淡出动画
+ */
+.animate-fade-out {
+  animation: fadeOut calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-in);
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/**
+ * 滑入动画（从上方）
+ */
+.animate-slide-in-top {
+  animation: slideInTop calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out);
+}
+
+@keyframes slideInTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * 滑入动画（从下方）
+ */
+.animate-slide-in-bottom {
+  animation: slideInBottom calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out);
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * 滑入动画（从左侧）
+ */
+.animate-slide-in-left {
+  animation: slideInLeft calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out);
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * 滑入动画（从右侧）
+ */
+.animate-slide-in-right {
+  animation: slideInRight calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/**
+ * 缩放进入动画
+ */
+.animate-scale-in {
+  animation: scaleIn calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-bounce);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/**
+ * 缩放退出动画
+ */
+.animate-scale-out {
+  animation: scaleOut calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-in);
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+/**
+ * 弹跳动画
+ */
+.animate-bounce {
+  animation: bounce calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-bounce) infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/**
+ * 脉冲动画
+ */
+.animate-pulse {
+  animation: pulse calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/**
+ * 旋转动画
+ */
+.animate-spin {
+  animation: spin calc(var(--anim-duration-very-slow) / var(--anim-speed-multiplier)) linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/**
+ * 摇晃动画
+ */
+.animate-shake {
+  animation: shake calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-in-out);
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/**
+ * 浮动动画
+ */
+.animate-float {
+  animation: float calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ============ 发光效果 ============ */
+
+/**
+ * 红色发光
+ */
+.glow-red {
+  animation: glowRed calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite alternate;
+}
+
+@keyframes glowRed {
+  from {
+    box-shadow: 0 0 10px var(--anim-color-red), 0 0 20px var(--anim-color-red);
+  }
+  to {
+    box-shadow: 0 0 20px var(--anim-color-red), 0 0 30px var(--anim-color-red), 0 0 40px var(--anim-color-red);
+  }
+}
+
+/**
+ * 蓝色发光
+ */
+.glow-blue {
+  animation: glowBlue calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite alternate;
+}
+
+@keyframes glowBlue {
+  from {
+    box-shadow: 0 0 10px var(--anim-color-blue), 0 0 20px var(--anim-color-blue);
+  }
+  to {
+    box-shadow: 0 0 20px var(--anim-color-blue), 0 0 30px var(--anim-color-blue), 0 0 40px var(--anim-color-blue);
+  }
+}
+
+/**
+ * 绿色发光
+ */
+.glow-green {
+  animation: glowGreen calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite alternate;
+}
+
+@keyframes glowGreen {
+  from {
+    box-shadow: 0 0 10px var(--anim-color-green), 0 0 20px var(--anim-color-green);
+  }
+  to {
+    box-shadow: 0 0 20px var(--anim-color-green), 0 0 30px var(--anim-color-green), 0 0 40px var(--anim-color-green);
+  }
+}
+
+/**
+ * 金色发光
+ */
+.glow-gold {
+  animation: glowGold calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite alternate;
+}
+
+@keyframes glowGold {
+  from {
+    box-shadow: 0 0 10px var(--anim-color-gold), 0 0 20px var(--anim-color-gold);
+  }
+  to {
+    box-shadow: 0 0 20px var(--anim-color-gold), 0 0 30px var(--anim-color-gold), 0 0 40px var(--anim-color-gold);
+  }
+}
+
+/* ============ 过渡效果 ============ */
+
+/**
+ * 平滑过渡（所有属性）
+ */
+.transition-all {
+  transition: all calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/**
+ * 快速过渡（所有属性）
+ */
+.transition-all-fast {
+  transition: all calc(var(--anim-duration-fast) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/**
+ * 慢速过渡（所有属性）
+ */
+.transition-all-slow {
+  transition: all calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/**
+ * 透明度过渡
+ */
+.transition-opacity {
+  transition: opacity calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/**
+ * 变换过渡
+ */
+.transition-transform {
+  transition: transform calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/**
+ * 背景色过渡
+ */
+.transition-background {
+  transition: background-color calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-default);
+}
+
+/* ============ 象棋特定动画 ============ */
+
+/**
+ * 棋子移动轨迹
+ */
+.piece-move-trail {
+  position: absolute;
+  pointer-events: none;
+  animation: moveTrail calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-out) forwards;
+}
+
+@keyframes moveTrail {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/**
+ * 棋子选中呼吸效果
+ */
+.piece-selected {
+  animation: pieceBreathe calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+@keyframes pieceBreathe {
+  0%, 100% {
+    box-shadow: 0 0 15px var(--anim-color-blue), inset 0 0 10px var(--anim-color-blue);
+  }
+  50% {
+    box-shadow: 0 0 25px var(--anim-color-blue), inset 0 0 15px var(--anim-color-blue);
+  }
+}
+
+/**
+ * 将军警告效果
+ */
+.check-warning {
+  animation: checkWarning calc(var(--anim-duration-fast) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+@keyframes checkWarning {
+  0%, 100% {
+    background-color: rgba(220, 38, 38, 0.1);
+  }
+  50% {
+    background-color: rgba(220, 38, 38, 0.3);
+  }
+}
+
+/**
+ * 可走位置提示
+ */
+.legal-move-indicator {
+  animation: legalMovePulse calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+@keyframes legalMovePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/**
+ * 胜利彩带
+ */
+.victory-confetti {
+  position: absolute;
+  animation: confettiDrop calc(3s / var(--anim-speed-multiplier)) linear forwards;
+}
+
+@keyframes confettiDrop {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(600px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/**
+ * 棋子消失效果
+ */
+.piece-captured {
+  animation: pieceDisappear calc(var(--anim-duration-normal) / var(--anim-speed-multiplier)) var(--anim-easing-in) forwards;
+}
+
+@keyframes pieceDisappear {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* ============ 加载动画 ============ */
+
+/**
+ * 圆点加载动画
+ */
+.loading-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.loading-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--anim-color-blue);
+  animation: loadingDot calc(var(--anim-duration-slow) / var(--anim-speed-multiplier)) var(--anim-easing-in-out) infinite;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: calc(150ms / var(--anim-speed-multiplier));
+}
+
+.loading-dots .dot:nth-child(3) {
+  animation-delay: calc(300ms / var(--anim-speed-multiplier));
+}
+
+@keyframes loadingDot {
+  0%, 100% {
+    transform: scale(0.5);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/**
+ * 环形加载动画
+ */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--anim-color-blue);
+  border-radius: 50%;
+  animation: spinnerRotate calc(var(--anim-duration-very-slow) / var(--anim-speed-multiplier)) linear infinite;
+}
+
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============ 工具类 ============ */
+
+/**
+ * 禁用动画（用于减少动画或无障碍模式）
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/**
+ * 强制启用动画
+ */
+.animate-force {
+  animation-play-state: running !important;
+}
+
+/**
+ * 暂停动画
+ */
+.animate-paused {
+  animation-play-state: paused !important;
+}
+
+/**
+ * 延迟执行动画
+ */
+.animate-delay-100 {
+  animation-delay: calc(100ms / var(--anim-speed-multiplier));
+}
+
+.animate-delay-200 {
+  animation-delay: calc(200ms / var(--anim-speed-multiplier));
+}
+
+.animate-delay-300 {
+  animation-delay: calc(300ms / var(--anim-speed-multiplier));
+}
+
+.animate-delay-500 {
+  animation-delay: calc(500ms / var(--anim-speed-multiplier));
+}
+
+/**
+ * 动画填充模式
+ */
+.animate-fill-forwards {
+  animation-fill-mode: forwards;
+}
+
+.animate-fill-backwards {
+  animation-fill-mode: backwards;
+}
+
+.animate-fill-both {
+  animation-fill-mode: both;
+}
+
+/**
+ * 动画迭代次数
+ */
+.animate-infinite {
+  animation-iteration-count: infinite;
+}
+
+.animate-once {
+  animation-iteration-count: 1;
+}
+
+.animate-twice {
+  animation-iteration-count: 2;
+}
+
+/* ============ 响应式适配 ============ */
+
+@media (max-width: 768px) {
+  :root {
+    --anim-duration-fast: 100ms;
+    --anim-duration-normal: 200ms;
+    --anim-duration-slow: 350ms;
+    --anim-duration-very-slow: 600ms;
+  }
+}
+
+/* ============ 深色模式支持 ============ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --anim-color-red: #ef4444;
+    --anim-color-black: #64748b;
+    --anim-color-green: #4ade80;
+    --anim-color-blue: #60a5fa;
+    --anim-color-gold: #fbbf24;
+    --anim-color-orange: #fb923c;
+  }
+}

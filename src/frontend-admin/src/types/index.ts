@@ -167,3 +167,55 @@ export interface LoginResponse {
     role: UserRole;
   };
 }
+
+// ========== 游戏管理扩展类型 ==========
+
+// 游戏日志
+export interface GameLog {
+  id: string;
+  game_id: string;
+  operator: {
+    id: string;
+    username: string;
+  };
+  action: string;
+  action_display: string;
+  details: Record<string, any>;
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  created_at: string;
+  ip_address?: string;
+}
+
+export interface GameLogParams {
+  page?: number;
+  page_size?: number;
+  action?: string;
+  severity?: string;
+}
+
+// 异常数据
+export interface AnomalyData {
+  game_id: string;
+  game: {
+    id: string;
+    red_player: string;
+    black_player: string;
+    status: string;
+    started_at: string;
+  };
+  anomaly_type: 'timeout' | 'suspicious_moves' | 'idle';
+  severity: 'high' | 'medium' | 'low';
+  description: string;
+  details: Record<string, any>;
+  detected_at: string;
+}
+
+// 游戏统计
+export interface GameStatistics {
+  totalGames: number;
+  playingGames: number;
+  waitingGames: number;
+  completedToday: number;
+  avgGameDuration: number;
+  totalAnomalies: number;
+}

@@ -8,10 +8,12 @@
 - 游戏状态广播
 - 游戏结束通知
 - 心跳机制
-- 断线重连处理
+- 断线重连处理（指数退避）
+- 异步消息队列处理
 """
 import json
 import logging
+import asyncio
 from typing import Dict, Optional
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -22,7 +24,10 @@ from datetime import datetime
 from .engine import Board, Move
 from .models import Game, GameMove
 from .fen_service import FenService
+from .timer_service import get_timer_service
+from .websocket_reconnect import get_reconnect_service, ReconnectState
 from authentication.services import TokenService
+from websocket.async_handler import get_async_handler, MessagePriority
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +46,20 @@ class GameConsumer(AsyncWebsocketConsumer):
     - GAME_STATE: 游戏状态更新
     - GAME_OVER: 游戏结束
     - HEARTBEAT: 心跳
+    - RECONNECT_STATUS: 重连状态
     - ERROR: 错误消息
     """
     
     # 心跳配置
     HEARTBEAT_INTERVAL = 30  # 30 秒
     TIMEOUT_THRESHOLD = 90  # 90 秒无心跳判定掉线
+    
+    def __init__(self, *args, **kwargs):
+        """初始化 Consumer"""
+        super().__init__(*args, **kwargs)
+        self.reconnect_manager = None
+        self.heartbeat_task: Optional[asyncio.Task] = None
+        self.async_handler = None
     
     async def connect(self):
         """建立 WebSocket 连接"""
@@ -74,6 +87,18 @@ class GameConsumer(AsyncWebsocketConsumer):
                 return
             
             self.user = user
+            
+            # 初始化重连管理器
+            reconnect_service = await get_reconnect_service()
+            self.reconnect_manager = reconnect_service.create_manager(
+                self, self.game_id, str(user['id'])
+            )
+            
+            # 初始化异步处理器
+            self.async_handler = get_async_handler()
+            
+            # 启动心跳监测任务
+            self.heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
             
             # 验证用户是否有权加入游戏
             can_join = await self._can_join_game()
@@ -132,6 +157,21 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         """断开 WebSocket 连接"""
         try:
+            # 取消心跳监测任务
+            if self.heartbeat_task and not self.heartbeat_task.done():
+                self.heartbeat_task.cancel()
+                try:
+                    await self.heartbeat_task
+                except asyncio.CancelledError:
+                    pass
+            
+            # 清理重连管理器
+            if self.reconnect_manager:
+                self.reconnect_manager.cancel()
+                if self.user:
+                    reconnect_service = await get_reconnect_service()
+                    reconnect_service.remove_manager(self.game_id, str(self.user['id']))
+            
             # 离开房间组
             await self.channel_layer.group_discard(
                 self.room_group_name,
@@ -148,13 +188,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'player_leave',
                         'data': {
-                            'user_id': str(self.user.id),
-                            'username': self.user.username
+                            'user_id': str(self.user['id']),
+                            'username': self.user['username']
                         }
                     }
                 )
             
-            logger.info(f"User {self.user.username if self.user else 'Unknown'} disconnected from game {self.game_id}")
+            logger.info(f"User {self.user['username'] if self.user else 'Unknown'} disconnected from game {self.game_id}")
             
         except Exception as e:
             logger.error(f"Error in disconnect: {e}")
@@ -168,6 +208,10 @@ class GameConsumer(AsyncWebsocketConsumer):
             # 更新心跳时间
             self.last_heartbeat = timezone.now()
             
+            # 更新重连管理器心跳
+            if self.reconnect_manager and self.user:
+                self.reconnect_manager.update_heartbeat()
+            
             if message_type == 'JOIN':
                 await self._handle_join(data)
             elif message_type == 'LEAVE':
@@ -176,6 +220,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self._handle_move(data)
             elif message_type == 'HEARTBEAT':
                 await self._handle_heartbeat(data)
+            elif message_type == 'RECONNECT_REQUEST':
+                await self._handle_reconnect_request(data)
+            elif message_type == 'GET_RECONNECT_HISTORY':
+                await self._handle_get_reconnect_history(data)
             else:
                 await self._send_error(f"Unknown message type: {message_type}", 'INVALID_MESSAGE_TYPE')
                 
@@ -202,7 +250,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.close()
     
     async def _handle_move(self, data):
-        """处理走棋消息"""
+        """处理走棋消息（使用异步消息队列优化）"""
         try:
             payload = data.get('payload', {})
             from_pos = payload.get('from')
@@ -212,99 +260,188 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self._send_error("Missing from or to position", 'INVALID_MOVE')
                 return
             
-            # 服务端验证走棋
-            result = await database_sync_to_async(self._process_move)(
-                self.game_id, from_pos, to_pos, self.user
-            )
-            
-            if result['success']:
-                # 广播走棋结果给玩家
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        'type': 'move_made',
-                        'data': {
-                            'move': {
-                                'from': from_pos,
-                                'to': to_pos,
-                                'piece': result.get('piece'),
-                                'captured': result.get('captured'),
-                                'notation': result.get('notation')
-                            },
-                            'fen': result.get('fen'),
-                            'turn': result.get('turn'),
-                            'move_count': result.get('move_count'),
-                            'is_check': result.get('is_check', False),
-                            'is_checkmate': result.get('is_checkmate', False),
-                            'is_stalemate': result.get('is_stalemate', False)
-                        }
-                    }
-                )
-                
-                # 通知观战者
-                await self._notify_spectators_move({
-                    'move': {
+            # 使用异步处理器处理走棋
+            if self.async_handler:
+                message_id = await self.async_handler.enqueue_message(
+                    room_id=self.game_id,
+                    message_type='MOVE',
+                    payload={
                         'from': from_pos,
                         'to': to_pos,
-                        'piece': result.get('piece'),
-                        'captured': result.get('captured'),
-                        'notation': result.get('notation')
+                        'user': self.user,
+                        'channel_name': self.channel_name
                     },
-                    'fen': result.get('fen'),
-                    'turn': result.get('turn'),
-                    'move_count': result.get('move_count'),
-                    'is_check': result.get('is_check', False),
-                    'is_checkmate': result.get('is_checkmate', False),
-                    'is_stalemate': result.get('is_stalemate', False)
-                })
-                
-                # 如果游戏结束，发送游戏结束通知
-                if result.get('game_over'):
-                    await self.channel_layer.group_send(
-                        self.room_group_name,
-                        {
-                            'type': 'game_over',
-                            'data': {
-                                'winner': result.get('winner'),
-                                'reason': result.get('win_reason'),
-                                'rating_change': result.get('rating_change')
-                            }
-                        }
-                    )
-                    
-                    # 通知观战者游戏结束
-                    await self._notify_spectators_game_over({
-                        'winner': result.get('winner'),
-                        'reason': result.get('win_reason'),
-                        'rating_change': result.get('rating_change')
-                    })
+                    priority=MessagePriority.HIGH
+                )
+                logger.debug(f"Move message enqueued: {message_id}")
             else:
-                # 发送错误消息
-                await self.send(text_data=json.dumps({
-                    'type': 'ERROR',
-                    'payload': {
-                        'success': False,
-                        'error': {
-                            'code': result.get('error_code', 'INVALID_MOVE'),
-                            'message': result.get('error_message', 'Invalid move')
-                        }
-                    },
-                    'timestamp': datetime.utcnow().isoformat() + 'Z'
-                }))
+                # 降级处理：直接处理
+                await self._process_move_directly(from_pos, to_pos)
                 
         except Exception as e:
             logger.error(f"Error handling move: {e}")
             await self._send_error(str(e), 'MOVE_ERROR')
     
+    async def _process_move_directly(self, from_pos: str, to_pos: str):
+        """直接处理走棋（降级处理）"""
+        result = await database_sync_to_async(self._process_move)(
+            self.game_id, from_pos, to_pos, self.user
+        )
+        
+        if result['success']:
+            await self._broadcast_move_result(result, from_pos, to_pos)
+        else:
+            await self._send_error(
+                result.get('error_message', 'Invalid move'),
+                result.get('error_code', 'INVALID_MOVE')
+            )
+    
+    async def _broadcast_move_result(self, result: Dict, from_pos: str, to_pos: str):
+        """广播走棋结果"""
+        move_data = {
+            'move': {
+                'from': from_pos,
+                'to': to_pos,
+                'piece': result.get('piece'),
+                'captured': result.get('captured'),
+                'notation': result.get('notation')
+            },
+            'fen': result.get('fen'),
+            'turn': result.get('turn'),
+            'move_count': result.get('move_count'),
+            'is_check': result.get('is_check', False),
+            'is_checkmate': result.get('is_checkmate', False),
+            'is_stalemate': result.get('is_stalemate', False)
+        }
+        
+        # 广播给玩家
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'move_made',
+                'data': move_data
+            }
+        )
+        
+        # 通知观战者
+        await self._notify_spectators_move(move_data)
+        
+        # 如果游戏结束
+        if result.get('game_over'):
+            await self._broadcast_game_over(result)
+    
     async def _handle_heartbeat(self, data):
         """处理心跳消息"""
         self.last_heartbeat = timezone.now()
+        
+        # 更新重连管理器心跳
+        if self.reconnect_manager and self.user:
+            self.reconnect_manager.update_heartbeat()
+        
         await self.send(text_data=json.dumps({
             'type': 'HEARTBEAT',
             'payload': {
                 'acknowledged': True,
-                'timestamp': datetime.utcnow().isoformat() + 'Z'
+                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'state': self.reconnect_manager.state.value if self.reconnect_manager else 'unknown'
             }
+        }))
+    
+    async def _handle_reconnect_request(self, data):
+        """处理重连请求"""
+        if not self.reconnect_manager:
+            await self._send_error("Reconnect manager not initialized", 'RECONNECT_ERROR')
+            return
+        
+        success = await self.reconnect_manager.start_reconnect()
+        if not success:
+            await self._send_error("Failed to start reconnect", 'RECONNECT_FAILED')
+    
+    async def _handle_get_reconnect_history(self, data):
+        """处理获取重连历史请求"""
+        if not self.reconnect_manager:
+            await self._send_error("Reconnect manager not initialized", 'RECONNECT_ERROR')
+            return
+        
+        limit = data.get('payload', {}).get('limit', 10)
+        history = self.reconnect_manager.get_reconnect_history(limit)
+        stats = self.reconnect_manager.get_stats()
+        
+        await self.send(text_data=json.dumps({
+            'type': 'RECONNECT_HISTORY',
+            'payload': {
+                'history': history,
+                'stats': stats
+            },
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
+        }))
+    
+    async def _heartbeat_monitor(self):
+        """心跳监测任务（后台运行）"""
+        try:
+            while True:
+                await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+                
+                # 检查心跳是否超时
+                if self.reconnect_manager and self.user:
+                    if self.reconnect_manager.is_heartbeat_timeout(self.TIMEOUT_THRESHOLD):
+                        logger.warning(
+                            f"Heartbeat timeout detected for user {self.user['id']} in game {self.game_id}"
+                        )
+                        
+                        # 启动自动重连
+                        reconnect_service = await get_reconnect_service()
+                        await reconnect_service.start_reconnect(self.game_id, str(self.user['id']))
+                
+        except asyncio.CancelledError:
+            logger.info(f"Heartbeat monitor cancelled for game {self.game_id}")
+            raise
+        except Exception as e:
+            logger.error(f"Error in heartbeat monitor: {e}")
+    
+    async def _reconnect_channel(self):
+        """
+        重连频道（由 ReconnectManager 调用）
+        
+        Returns:
+            是否成功
+        """
+        try:
+            # 重新加入房间组
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            
+            # 更新玩家在线状态
+            await self._update_player_online(True)
+            
+            # 发送当前游戏状态
+            game_state = await self._get_game_state()
+            await self.send(text_data=json.dumps({
+                'type': 'GAME_STATE',
+                'payload': game_state,
+                'timestamp': datetime.utcnow().isoformat() + 'Z'
+            }))
+            
+            logger.info(f"Successfully reconnected to channel for game {self.game_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error reconnecting to channel: {e}")
+            return False
+    
+    # Channel layer 重连状态处理器
+    async def reconnect_status(self, event):
+        """接收其他玩家的重连状态广播"""
+        await self.send(text_data=json.dumps({
+            'type': 'RECONNECT_STATUS',
+            'payload': {
+                'user_id': event['data'].get('user_id'),
+                'state': event['data'].get('state'),
+                'attempt': event['data'].get('attempt')
+            },
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
         }))
     
     async def _send_error(self, message: str, code: str):
@@ -356,6 +493,26 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
         except Exception as e:
             logger.error(f"Error notifying spectators of game over: {e}")
+    
+    async def _broadcast_game_over(self, result: Dict):
+        """广播游戏结束"""
+        game_over_data = {
+            'winner': result.get('winner'),
+            'reason': result.get('win_reason'),
+            'rating_change': result.get('rating_change')
+        }
+        
+        # 通知玩家
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_over',
+                'data': game_over_data
+            }
+        )
+        
+        # 通知观战者
+        await self._notify_spectators_game_over(game_over_data)
     
     async def _authenticate_connection(self) -> Optional[Dict]:
         """
@@ -537,6 +694,23 @@ class GameConsumer(AsyncWebsocketConsumer):
                         'error_message': '不是你的回合'
                     }
                 
+                # 更新计时器并检查超时
+                timer_service = get_timer_service()
+                player_color = 'red' if is_red_turn else 'black'
+                remaining_time, is_timeout = timer_service.update_timer(game, player_color)
+                
+                if is_timeout:
+                    # 超时判负
+                    timer_service.handle_timeout(game, player_color)
+                    return {
+                        'success': True,
+                        'game_over': True,
+                        'winner': 'black' if player_color == 'red' else 'red',
+                        'win_reason': 'timeout',
+                        'timeout_player': player_color,
+                        'remaining_time': remaining_time
+                    }
+                
                 # 创建棋盘对象
                 board = Board(game.fen_current)
                 
@@ -595,6 +769,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                 is_checkmate = board.is_checkmate()
                 is_stalemate = board.is_stalemate()
                 
+                # 获取双方剩余时间
+                timer_service = get_timer_service()
+                red_remaining = timer_service.get_remaining_time(game, 'red')
+                black_remaining = timer_service.get_remaining_time(game, 'black')
+                
                 result = {
                     'success': True,
                     'piece': piece,
@@ -606,7 +785,9 @@ class GameConsumer(AsyncWebsocketConsumer):
                     'is_check': board._is_in_check(piece.isupper()),
                     'is_checkmate': is_checkmate,
                     'is_stalemate': is_stalemate,
-                    'game_over': is_checkmate or is_stalemate
+                    'game_over': is_checkmate or is_stalemate,
+                    'red_time_remaining': red_remaining,
+                    'black_time_remaining': black_remaining
                 }
                 
                 if is_checkmate or is_stalemate:

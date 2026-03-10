@@ -250,3 +250,18 @@ export interface AppSettings {
   board_orientation: 'red' | 'black';
   language: 'zh' | 'en';
 }
+
+// 聊天相关类型（导出自 chat.ts）
+export type {
+  ChatMessage,
+  ChatMessageResponse,
+  SendMessageRequest,
+  ChatHistoryResponse,
+  UseChatReturn,
+  ChatPanelProps,
+  EmojiPickerProps,
+  WSChatMessage,
+  WSChatResponse,
+} from './chat';
+
+export { ALLOWED_EMOJIS } from './chat';

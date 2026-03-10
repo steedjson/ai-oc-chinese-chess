@@ -5,7 +5,7 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   collectCoverageFrom: [
-    'src/**/*.{js,jsx}',
+    'src/**/*.{js,jsx,ts,tsx}',
     '!src/index.js',
     '!src/setupTests.js',
   ],
@@ -19,8 +19,8 @@ module.exports = {
   },
   coverageReporters: ['text', 'html', 'lcov'],
   coverageDirectory: 'coverage',
-  testMatch: ['**/__tests__/**/*.js?(x)', '**/?(*.)+(spec|test).js?(x)'],
+  testMatch: ['**/__tests__/**/*.js?(x)', '**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).js?(x)', '**/?(*.)+(spec|test).ts?(x)'],
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
 };

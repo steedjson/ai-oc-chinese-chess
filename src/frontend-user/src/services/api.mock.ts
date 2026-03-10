@@ -18,6 +18,9 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' ||
                  import.meta.env.VITEST === 'true' ||
                  typeof window !== 'undefined' && (window as any).__TEST__;
 
+// 调试日志
+console.log('[Mock] USE_MOCK:', USE_MOCK, 'VITE_USE_MOCK:', import.meta.env.VITE_USE_MOCK);
+
 // Mock 处理器类型
 type MockHandler = (config: AxiosRequestConfig) => Promise<AxiosResponse | null>;
 
@@ -40,22 +43,26 @@ class MockInterceptor {
     this.handlers.set(/^POST.*\/auth\/register/, this.handleRegister.bind(this));
     this.handlers.set(/^POST.*\/auth\/refresh/, this.handleRefreshToken.bind(this));
     this.handlers.set(/^GET.*\/auth\/me/, this.handleGetUserInfo.bind(this));
+    this.handlers.set(/^GET.*\/users\/profile/, this.handleGetUserInfo.bind(this));
 
     // 游戏相关
-    this.handlers.set(/^POST.*\/games\/ai/, this.handleCreateAIGame.bind(this));
-    this.handlers.set(/^POST.*\/games\/match/, this.handleCreateMatchGame.bind(this));
+    this.handlers.set(/^POST.*\/ai\/games/, this.handleCreateAIGame.bind(this));
+    this.handlers.set(/^POST.*\/matchmaking\/match/, this.handleCreateMatchGame.bind(this));
     this.handlers.set(/^POST.*\/games\/.*\/move/, this.handleMakeMove.bind(this));
     this.handlers.set(/^GET.*\/games\/[^/]+$/, this.handleGetGameStatus.bind(this));
     this.handlers.set(/^GET.*\/games\/records/, this.handleGetGameRecords.bind(this));
+    this.handlers.set(/^GET.*\/users\/\d+\/games/, this.handleGetUserGames.bind(this));
 
     // 排行榜相关
     this.handlers.set(/^GET.*\/ranking\/leaderboard/, this.handleGetLeaderboard.bind(this));
     this.handlers.set(/^GET.*\/ranking\/user/, this.handleGetUserRank.bind(this));
 
     // 用户相关
+    this.handlers.set(/^GET.*\/users\/profile/, this.handleGetProfile.bind(this));
+    this.handlers.set(/^GET.*\/users\/me\/?$/, this.handleGetUserInfo.bind(this));
     this.handlers.set(/^GET.*\/users\/\d+$/, this.handleGetProfile.bind(this));
-    this.handlers.set(/^GET.*\/users\/\d+\/stats/, this.handleGetStats.bind(this));
-    this.handlers.set(/^PUT.*\/users\/\d+/, this.handleUpdateProfile.bind(this));
+    this.handlers.set(/^GET.*\/users\/(me|\d+)\/stats/, this.handleGetStats.bind(this));
+    this.handlers.set(/^PUT.*\/users\/(me|\d+)/, this.handleUpdateProfile.bind(this));
   }
 
   /**
@@ -90,7 +97,7 @@ class MockInterceptor {
       statusText: 'OK',
       headers: {},
       config: {} as AxiosRequestConfig,
-    });
+    } as AxiosResponse);
   }
 
   /**
@@ -109,7 +116,7 @@ class MockInterceptor {
       statusText: 'Error',
       headers: {},
       config: {} as AxiosRequestConfig,
-    });
+    } as AxiosResponse);
   }
 
   // ==================== 认证相关处理器 ====================
@@ -185,19 +192,31 @@ class MockInterceptor {
   // ==================== 用户相关处理器 ====================
 
   private async handleGetProfile(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const userId = parseInt(config.url?.match(/\/users\/(\d+)/)?.[1] || '1', 10);
+    // 支持 /users/profile 和 /users/{userId}
+    const userId = parseInt(config.url?.match(/\/users\/(?:profile|(\d+))/)?.[1] || '1', 10);
     const result = await mockUser.getProfile(userId);
     return this.createResponse(result);
   }
 
   private async handleGetStats(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const userId = parseInt(config.url?.match(/\/users\/(\d+)/)?.[1] || '1', 10);
+    // 支持 /users/me/stats 和 /users/{userId}/stats
+    const match = config.url?.match(/\/users\/(?:me|(\d+))\/stats/);
+    const userId = parseInt(match?.[1] || '1', 10);
     const result = await mockUser.getStats(userId);
     return this.createResponse(result);
   }
 
+  private async handleGetUserGames(config: AxiosRequestConfig): Promise<AxiosResponse> {
+    const userId = parseInt(config.url?.match(/\/users\/(\d+)\/games/)?.[1] || '1', 10);
+    const { page, page_size } = config.params || {};
+    const result = await mockUser.getUserGames(userId, page, page_size);
+    return this.createResponse(result);
+  }
+
   private async handleUpdateProfile(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const userId = parseInt(config.url?.match(/\/users\/(\d+)/)?.[1] || '1', 10);
+    // 支持 /users/me 和 /users/{userId}
+    const match = config.url?.match(/\/users\/(?:me|(\d+))/);
+    const userId = parseInt(match?.[1] || '1', 10);
     const result = await mockUser.updateProfile(userId, config.data);
     return this.createResponse(result);
   }

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
   Row,
   Col,
-  Statistic,
   Typography,
   Form,
   Slider,
@@ -29,10 +28,10 @@ import {
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aiApi, type StockfishParams } from '../../api/ai';
-import type { AiConfig, AiGameRecord } from '../../types';
+import type { AiConfig } from '../../types';
 import { useHasPermission } from '../../hooks/useHasPermission';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Paragraph } = Typography;
 
 const AIPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -44,15 +43,26 @@ const AIPage: React.FC = () => {
   const { data: config, isLoading: isConfigLoading } = useQuery({
     queryKey: ['ai-config'],
     queryFn: () => aiApi.getConfig(),
-    onSuccess: (data) => configForm.setFieldsValue(data),
   });
 
   // 获取引擎参数
   const { data: engineParams, isLoading: isEngineLoading } = useQuery({
     queryKey: ['engine-params'],
     queryFn: () => aiApi.getEngineParams(),
-    onSuccess: (data) => engineForm.setFieldsValue(data),
   });
+
+  // 表单数据同步
+  React.useEffect(() => {
+    if (config) {
+      configForm.setFieldsValue(config);
+    }
+  }, [config, configForm]);
+
+  React.useEffect(() => {
+    if (engineParams) {
+      engineForm.setFieldsValue(engineParams);
+    }
+  }, [engineParams, engineForm]);
 
   // 获取对局记录
   const { data: gameRecords, isLoading: isGamesLoading } = useQuery({

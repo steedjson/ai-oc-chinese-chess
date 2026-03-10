@@ -1,68 +1,107 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* 管理端全局样式 */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* 导入布局样式系统 */
+@import './styles/index.css';
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+/* ===== 基础重置 ===== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  font-size: 14px;
+  line-height: 1.5715;
+  color: var(--color-text);
+  background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ===== 滚动条美化 ===== */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-secondary) var(--color-bg);
+}
+
+/* ===== 链接样式 ===== */
+
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--duration) var(--ease-in-out);
 }
+
 a:hover {
-  color: #535bf2;
+  color: var(--color-primary-hover);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+/* ===== 选中样式 ===== */
+
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ===== 焦点样式 ===== */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* ===== 工具类 ===== */
+
+/* 文本截断 */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@media (prefers-color-scheme: light) {
+/* 隐藏滚动条但保留功能 */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== 打印样式 ===== */
+
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header {
+    display: none !important;
+  }
+  
+  .ant-layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* ===== 无障碍支持 ===== */
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --color-border: rgba(0, 0, 0, 0.3);
+    --color-text-secondary: rgba(0, 0, 0, 0.7);
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* ===== 深色模式支持 ===== */
+
+@media (prefers-color-scheme: dark) {
+  /* 可选：自动切换到深色模式 */
+  /* .dark-mode { ... } */
 }

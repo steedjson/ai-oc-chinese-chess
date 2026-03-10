@@ -2,8 +2,8 @@
  * ChessBoard 组件测试
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ChessBoard from './ChessBoard';
 import type { BoardState } from '@/types';
 
@@ -18,6 +18,10 @@ const mockBoardState: BoardState = {
   game_over: false,
   last_move: undefined,
 };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('ChessBoard', () => {
   it('应该正确渲染棋盘', () => {
@@ -103,5 +107,70 @@ describe('ChessBoard', () => {
     
     const board = container.querySelector('.chess-board');
     expect(board).toBeInTheDocument();
+  });
+
+  it('应该显示将军提示动画', () => {
+    const checkBoardState: BoardState = {
+      ...mockBoardState,
+      in_check: true,
+    };
+
+    const { container, getByText } = render(
+      <ChessBoard boardState={checkBoardState} enableAnimations={true} />
+    );
+
+    // 检查将军提示存在
+    expect(getByText('将军!')).toBeInTheDocument();
+    
+    // 检查棋盘有将军样式
+    const board = container.querySelector('.board-check');
+    expect(board).toBeInTheDocument();
+  });
+
+  it('应该显示游戏结束弹窗', () => {
+    const gameOverBoardState: BoardState = {
+      ...mockBoardState,
+      game_over: true,
+      turn: 'black', // 红方胜利
+    };
+
+    const { container, getByText } = render(
+      <ChessBoard boardState={gameOverBoardState} enableAnimations={true} />
+    );
+
+    // 检查游戏结束弹窗
+    expect(getByText('红方胜利!')).toBeInTheDocument();
+    
+    // 检查弹窗存在
+    const modal = container.querySelector('.game-over-modal');
+    expect(modal).toBeInTheDocument();
+  });
+
+  it('应该显示有效走棋提示', () => {
+    const { container } = render(
+      <ChessBoard
+        boardState={mockBoardState}
+        validMoves={['e1', 'e2']}
+        enableAnimations={true}
+      />
+    );
+
+    // 检查有效走棋提示点
+    const hints = container.querySelectorAll('.valid-move-hint');
+    expect(hints.length).toBeGreaterThan(0);
+  });
+
+  it('在禁用动画时不应显示动画效果', () => {
+    const checkBoardState: BoardState = {
+      ...mockBoardState,
+      in_check: true,
+    };
+
+    const { queryByText } = render(
+      <ChessBoard boardState={checkBoardState} enableAnimations={false} />
+    );
+
+    // 禁用动画时不应显示将军提示
+    expect(queryByText('将军!')).not.toBeInTheDocument();
   });
 });

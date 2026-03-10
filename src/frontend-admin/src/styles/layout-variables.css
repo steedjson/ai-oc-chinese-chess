@@ -1,0 +1,145 @@
+/* 管理端布局 - CSS 变量定义 */
+
+:root {
+  /* ===== 颜色系统 ===== */
+  
+  /* 主色 */
+  --color-primary: #1890ff;
+  --color-primary-hover: #40a9ff;
+  --color-primary-active: #096dd9;
+  --color-primary-light: rgba(24, 144, 255, 0.1);
+  
+  /* 功能色 */
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-error: #ff4d4f;
+  --color-info: #1890ff;
+  
+  /* 文本色 */
+  --color-text: rgba(0, 0, 0, 0.85);
+  --color-text-secondary: rgba(0, 0, 0, 0.45);
+  --color-text-disabled: rgba(0, 0, 0, 0.25);
+  --color-text-inverse: #ffffff;
+  
+  /* 背景色 */
+  --color-bg: #f0f2f5;
+  --color-bg-card: #ffffff;
+  --color-bg-dark: #001529;
+  --color-bg-dark-hover: #002140;
+  --color-bg-dark-selected: #1890ff1a;
+  
+  /* 边框色 */
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-secondary: rgba(0, 0, 0, 0.12);
+  
+  /* ===== 阴影系统 ===== */
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.16);
+  
+  /* 特殊阴影 */
+  --shadow-header: 0 1px 4px rgba(0, 21, 41, 0.08);
+  --shadow-sider: 2px 0 8px rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 4px 16px rgba(24, 144, 255, 0.2);
+  
+  /* ===== 圆角系统 ===== */
+  
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-xxl: 16px;
+  --radius-full: 9999px;
+  
+  /* ===== 间距系统 ===== */
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  
+  /* ===== 尺寸系统 ===== */
+  
+  /* 布局尺寸 */
+  --header-height: 64px;
+  --header-height-mobile: 56px;
+  --sider-width: 200px;
+  --sider-width-collapsed: 80px;
+  --sider-width-tablet: 160px;
+  
+  /* 内容区 */
+  --content-max-width: 1400px;
+  --content-padding: var(--spacing-lg);
+  --content-padding-mobile: var(--spacing-md);
+  
+  /* ===== 动效系统 ===== */
+  
+  /* 过渡时间 */
+  --duration-instant: 0s;
+  --duration-fast: 0.15s;
+  --duration: 0.2s;
+  --duration-slow: 0.3s;
+  --duration-slower: 0.5s;
+  
+  /* 过渡函数 */
+  --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-in: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* ===== 层级系统 ===== */
+  
+  --z-index-base: 1;
+  --z-index-dropdown: 1000;
+  --z-index-header: 1000;
+  --z-index-sider: 1001;
+  --z-index-modal: 1000;
+  --z-index-notification: 1010;
+  --z-index-popover: 1030;
+  --z-index-tooltip: 1050;
+  
+  /* ===== 深色模式 ===== */
+  
+  /* 深色模式变量（通过 .dark-mode 类激活） */
+}
+
+.dark-mode {
+  --color-text: rgba(255, 255, 255, 0.85);
+  --color-text-secondary: rgba(255, 255, 255, 0.45);
+  --color-bg: #141414;
+  --color-bg-card: #1f1f1f;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== 响应式断点 ===== */
+
+/*
+--breakpoint-xs: 480px;   /* 超小屏（手机横屏）
+--breakpoint-sm: 576px;   /* 小屏（手机）
+--breakpoint-md: 768px;   /* 中屏（平板）
+--breakpoint-lg: 992px;   /* 大屏（桌面）
+--breakpoint-xl: 1200px;  /* 超大屏（大桌面）
+--breakpoint-xxl: 1600px; /* 超超大屏
+*/
+
+/* ===== 使用示例 ===== */
+
+/*
+.element {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-lg);
+  transition: all var(--duration) var(--ease-in-out);
+}
+*/

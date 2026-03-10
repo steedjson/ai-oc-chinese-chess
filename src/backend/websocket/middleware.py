@@ -57,19 +57,48 @@ class JWTAuthMiddleware:
                 logger.warning("Invalid or expired JWT token")
                 return None
             
-            # 获取用户信息
-            user_id = payload.get('user_id')
+            logger.debug(f"JWT payload: {payload}")
+            
+            # 获取用户信息（尝试多种 claim 名称）
+            user_id = payload.get('user_id') or payload.get('sub')
             if not user_id:
                 logger.warning("No user_id in JWT payload")
                 return None
             
-            user = await self._get_user_by_id(user_id)
-            if not user:
-                logger.warning(f"User {user_id} not found")
-                return None
+            logger.debug(f"Extracted user_id: {user_id} (type: {type(user_id).__name__})")
             
-            logger.info(f"User {user.get('username')} authenticated successfully")
-            return user
+            # 直接使用 sync_to_async 包装数据库查询（使用 thread_sensitive=True 避免 SQLite 锁定问题）
+            from channels.db import database_sync_to_async
+            from users.models import User
+            
+            async def get_user_async():
+                try:
+                    user_id_int = int(user_id)
+                except (ValueError, TypeError):
+                    user_id_int = user_id
+                
+                get_user_sync = database_sync_to_async(
+                    lambda: User.objects.get(id=user_id_int),
+                    thread_sensitive=True
+                )
+                return await get_user_sync()
+            
+            try:
+                user_obj = await get_user_async()
+                user = {
+                    'id': str(user_obj.id),
+                    'username': user_obj.username,
+                    'email': user_obj.email,
+                    'is_active': user_obj.is_active
+                }
+                logger.info(f"User {user.get('username')} authenticated successfully")
+                return user
+            except User.DoesNotExist:
+                logger.warning(f"User {user_id} does not exist")
+                return None
+            except Exception as e:
+                logger.error(f"Error getting user {user_id}: {e}")
+                return None
             
         except Exception as e:
             logger.error(f"Authentication error: {e}")
@@ -135,26 +164,38 @@ class JWTAuthMiddleware:
             return None
     
     @database_sync_to_async
-    def _get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def _get_user_by_id(self, user_id) -> Optional[Dict[str, Any]]:
         """
         根据 ID 获取用户信息
         
         Args:
-            user_id: 用户 ID
+            user_id: 用户 ID（可以是整数或字符串）
         
         Returns:
             用户信息字典，未找到返回 None
         """
         try:
             from users.models import User
-            user = User.objects.get(id=user_id)
+            # 尝试转换为整数（User 模型使用 AutoField）
+            try:
+                user_id_int = int(user_id)
+            except (ValueError, TypeError):
+                user_id_int = user_id
+            
+            logger.debug(f"Querying user with ID: {user_id_int} (original: {user_id})")
+            user = User.objects.get(id=user_id_int)
+            logger.debug(f"Found user: {user.username}")
             return {
                 'id': str(user.id),
                 'username': user.username,
                 'email': user.email,
                 'is_active': user.is_active
             }
-        except Exception:
+        except User.DoesNotExist:
+            logger.warning(f"User {user_id} does not exist")
+            return None
+        except Exception as e:
+            logger.error(f"Error getting user {user_id}: {e}")
             return None
 
 

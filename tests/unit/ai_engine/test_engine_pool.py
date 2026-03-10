@@ -12,7 +12,7 @@ from ai_engine.engine_pool import EnginePool
 class TestEnginePool:
     """引擎池管理测试"""
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     def test_pool_initialization(self, mock_service_class):
         """测试引擎池初始化"""
         pool = EnginePool(pool_size=4)
@@ -22,7 +22,7 @@ class TestEnginePool:
         assert pool.available.qsize() == 4
         assert len(pool.in_use) == 0
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_acquire_engine(self, mock_service_class):
         """测试获取引擎"""
@@ -35,7 +35,7 @@ class TestEnginePool:
         assert len(pool.in_use) == 1
         engine.set_difficulty.assert_called_with(5)
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_release_engine(self, mock_service_class):
         """测试释放引擎"""
@@ -47,7 +47,7 @@ class TestEnginePool:
         assert pool.available.qsize() == 4
         assert len(pool.in_use) == 0
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_acquire_multiple_engines(self, mock_service_class):
         """测试获取多个引擎"""
@@ -62,7 +62,7 @@ class TestEnginePool:
         assert pool.available.qsize() == 0
         assert len(pool.in_use) == 4
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_acquire_when_pool_empty(self, mock_service_class):
         """测试引擎池为空时获取引擎（应该等待）"""
@@ -82,7 +82,7 @@ class TestEnginePool:
         assert engine3 is not None
         assert pool.available.qsize() == 0
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_release_nonexistent_engine(self, mock_service_class):
         """测试释放不存在的引擎"""
@@ -92,7 +92,7 @@ class TestEnginePool:
         # 不应该抛出异常
         pool.release(mock_engine)
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_health_check(self, mock_service_class):
         """测试健康检查"""
@@ -108,7 +108,7 @@ class TestEnginePool:
         for engine in pool.engines.values():
             engine.get_best_move.assert_called()
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_health_check_restart_failed_engine(self, mock_service_class):
         """测试健康检查重启失败的引擎"""
@@ -123,7 +123,7 @@ class TestEnginePool:
         # 应该尝试重启失败的引擎
         mock_service_class.assert_called()
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     def test_default_pool_size(self, mock_service_class):
         """测试默认引擎池大小"""
         pool = EnginePool()
@@ -131,7 +131,7 @@ class TestEnginePool:
         assert pool.pool_size == 4
         assert len(pool.engines) == 4
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     def test_custom_pool_size(self, mock_service_class):
         """测试自定义引擎池大小"""
         pool = EnginePool(pool_size=8)
@@ -139,7 +139,7 @@ class TestEnginePool:
         assert pool.pool_size == 8
         assert len(pool.engines) == 8
     
-    @patch('ai_engine.engine_pool.StockfishService')
+    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
     async def test_engine_pool_concurrent_access(self, mock_service_class):
         """测试引擎池并发访问"""

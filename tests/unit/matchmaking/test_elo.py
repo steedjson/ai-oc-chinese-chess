@@ -6,6 +6,7 @@ import sys
 import os
 from decimal import Decimal
 from datetime import datetime
+from unittest.mock import Mock, MagicMock, patch
 
 # 设置 Django 环境
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src', 'backend'))
@@ -24,6 +25,8 @@ from matchmaking.elo import (
     INITIAL_RATING,
     MIN_RATING,
     MAX_RATING,
+    EloService,
+    get_segment_boundaries,
 )
 
 
@@ -165,3 +168,263 @@ class TestGetRankSegment:
         assert get_rank_segment(1601) == RankSegment.DIAMOND
         assert get_rank_segment(1800) == RankSegment.DIAMOND
         assert get_rank_segment(1801) == RankSegment.MASTER
+
+
+class TestEloService:
+    """测试 EloService 类"""
+    
+    @pytest.fixture
+    def elo_service(self):
+        """创建 EloService 实例"""
+        with patch('matchmaking.elo.redis.from_url') as mock_redis:
+            service = EloService()
+            yield service
+    
+    @pytest.fixture
+    def mock_redis(self, elo_service):
+        """获取 mock redis"""
+        return elo_service.redis
+    
+    @patch('matchmaking.elo.redis.from_url')
+    def test_service_initialization(self, mock_redis):
+        """测试服务初始化"""
+        service = EloService()
+        
+        assert service.redis is not None
+        assert service.leaderboard_key == "matchmaking:leaderboard"
+        assert service.history_prefix == "matchmaking:history:"
+    
+    @patch('matchmaking.elo.update_elo_rating')
+    @patch('users.models.User')
+    def test_update_player_rating_win(self, mock_user, mock_update, elo_service, mock_redis):
+        """测试更新玩家等级分 - 胜利"""
+        # Mock 用户
+        mock_player = MagicMock()
+        mock_player.id = 'player1'
+        mock_player.elo_rating = 1500
+        
+        mock_opponent = MagicMock()
+        mock_opponent.id = 'player2'
+        mock_opponent.elo_rating = 1450
+        
+        mock_user.objects.get.side_effect = [mock_player, mock_opponent]
+        mock_update.side_effect = [1520, 1430]  # 玩家新分数，对手新分数
+        
+        new_rating, opp_new_rating = elo_service.update_player_rating(
+            player_id='player1',
+            opponent_id='player2',
+            game_id='game123',
+            result='win'
+        )
+        
+        assert new_rating == 1520
+        assert opp_new_rating == 1430
+        mock_user.objects.get.assert_called()
+        mock_redis.zadd.assert_called()
+        mock_redis.lpush.assert_called()
+    
+    @patch('matchmaking.elo.update_elo_rating')
+    @patch('users.models.User')
+    def test_update_player_rating_loss(self, mock_user, mock_update, elo_service, mock_redis):
+        """测试更新玩家等级分 - 失败"""
+        mock_player = MagicMock()
+        mock_player.id = 'player1'
+        mock_player.elo_rating = 1500
+        
+        mock_opponent = MagicMock()
+        mock_opponent.id = 'player2'
+        mock_opponent.elo_rating = 1550
+        
+        mock_user.objects.get.side_effect = [mock_player, mock_opponent]
+        mock_update.side_effect = [1480, 1570]
+        
+        new_rating, opp_new_rating = elo_service.update_player_rating(
+            player_id='player1',
+            opponent_id='player2',
+            game_id='game123',
+            result='loss'
+        )
+        
+        assert new_rating == 1480
+        assert opp_new_rating == 1570
+    
+    @patch('matchmaking.elo.update_elo_rating')
+    @patch('users.models.User')
+    def test_update_player_rating_draw(self, mock_user, mock_update, elo_service, mock_redis):
+        """测试更新玩家等级分 - 和棋"""
+        mock_player = MagicMock()
+        mock_player.id = 'player1'
+        mock_player.elo_rating = 1500
+        
+        mock_opponent = MagicMock()
+        mock_opponent.id = 'player2'
+        mock_opponent.elo_rating = 1500
+        
+        mock_user.objects.get.side_effect = [mock_player, mock_opponent]
+        mock_update.side_effect = [1500, 1500]
+        
+        new_rating, opp_new_rating = elo_service.update_player_rating(
+            player_id='player1',
+            opponent_id='player2',
+            game_id='game123',
+            result='draw'
+        )
+        
+        assert new_rating == 1500
+        assert opp_new_rating == 1500
+    
+    def test_update_player_rating_user_not_found(self, elo_service):
+        """测试更新玩家等级分 - 用户不存在"""
+        with patch('users.models.User') as mock_user:
+            mock_user.objects.get.side_effect = Exception("User not found")
+            
+            with pytest.raises(Exception):
+                elo_service.update_player_rating(
+                    player_id='invalid',
+                    opponent_id='player2',
+                    game_id='game123',
+                    result='win'
+                )
+    
+    def test_update_leaderboard(self, elo_service, mock_redis):
+        """测试更新排行榜"""
+        elo_service._update_leaderboard('player1', 1600)
+        
+        mock_redis.zadd.assert_called_once_with(
+            "matchmaking:leaderboard",
+            {'player1': 1600}
+        )
+    
+    def test_record_history(self, elo_service, mock_redis):
+        """测试记录等级分历史"""
+        elo_service._record_history(
+            user_id='player1',
+            game_id='game123',
+            opponent_id='player2',
+            result='win',
+            new_rating=1600
+        )
+        
+        mock_redis.lpush.assert_called_once()
+        mock_redis.ltrim.assert_called_once()
+    
+    @patch('matchmaking.elo.get_rank_segment')
+    def test_get_leaderboard(self, mock_segment, elo_service, mock_redis):
+        """测试获取排行榜"""
+        mock_redis.zrevrange.return_value = [
+            ('player1', 1800),
+            ('player2', 1750),
+            ('player3', 1700)
+        ]
+        mock_redis.zcard.return_value = 50
+        mock_segment.return_value = RankSegment.DIAMOND
+        
+        leaderboard = elo_service.get_leaderboard(page=1, page_size=20)
+        
+        assert 'players' in leaderboard
+        assert leaderboard['total'] == 50
+        assert leaderboard['page'] == 1
+        assert len(leaderboard['players']) == 3
+    
+    def test_get_leaderboard_empty(self, elo_service, mock_redis):
+        """测试获取空排行榜"""
+        mock_redis.zrevrange.return_value = []
+        mock_redis.zcard.return_value = 0
+        
+        leaderboard = elo_service.get_leaderboard()
+        
+        assert leaderboard['players'] == []
+        assert leaderboard['total'] == 0
+    
+    @patch('users.models.User')
+    def test_get_user_rating(self, mock_user, elo_service):
+        """测试获取用户等级分"""
+        mock_user_obj = MagicMock()
+        mock_user_obj.id = 'player1'
+        mock_user_obj.elo_rating = 1600
+        mock_user_obj.total_games = 100
+        mock_user_obj.wins = 60
+        mock_user_obj.losses = 35
+        mock_user_obj.draws = 5
+        
+        mock_user.objects.get.return_value = mock_user_obj
+        
+        rating_info = elo_service.get_user_rating('player1')
+        
+        assert rating_info is not None
+        assert rating_info['rating'] == 1600
+        assert rating_info['total_games'] == 100
+    
+    def test_get_user_rating_not_found(self, elo_service):
+        """测试获取用户等级分 - 用户不存在"""
+        from users.models import User
+        
+        with patch('users.models.User') as mock_user:
+            # Mock DoesNotExist 异常
+            mock_user.DoesNotExist = Exception
+            mock_user.objects.get.side_effect = Exception("User not found")
+            
+            rating_info = elo_service.get_user_rating('invalid')
+            
+            assert rating_info is None
+    
+    def test_get_rating_history(self, elo_service, mock_redis):
+        """测试获取等级分历史"""
+        mock_redis.lrange.return_value = [
+            b'{"rating": 1600, "change": 20}',
+            b'{"rating": 1580, "change": -10}'
+        ]
+        
+        history = elo_service.get_rating_history('player1', limit=10)
+        
+        assert len(history) == 2
+        mock_redis.lrange.assert_called_once()
+    
+    def test_get_rating_history_empty(self, elo_service, mock_redis):
+        """测试获取空历史记录"""
+        mock_redis.lrange.return_value = []
+        
+        history = elo_service.get_rating_history('player1')
+        
+        assert history == []
+    
+    @patch('matchmaking.elo.get_rank_segment')
+    def test_get_users_in_rating_range(self, mock_segment, elo_service, mock_redis):
+        """测试获取指定分数范围内的用户"""
+        mock_redis.zrangebyscore.return_value = [
+            ('player1', 1500),
+            ('player2', 1550)
+        ]
+        mock_segment.return_value = RankSegment.PLATINUM
+        
+        users = elo_service.get_users_in_rating_range(1400, 1600, limit=10)
+        
+        assert len(users) == 2
+        assert users[0]['rating'] == 1500
+    
+    def test_get_users_in_rating_range_empty(self, elo_service, mock_redis):
+        """测试获取空范围用户"""
+        mock_redis.zrangebyscore.return_value = []
+        
+        users = elo_service.get_users_in_rating_range(2000, 2500)
+        
+        assert users == []
+
+
+class TestGetSegmentBoundaries:
+    """测试获取段位边界"""
+    
+    def test_get_segment_boundaries(self):
+        """测试获取所有段位边界"""
+        boundaries = get_segment_boundaries()
+        
+        assert 'bronze' in boundaries
+        assert 'silver' in boundaries
+        assert 'gold' in boundaries
+        assert 'platinum' in boundaries
+        assert 'diamond' in boundaries
+        assert 'master' in boundaries
+        
+        assert boundaries['bronze']['min'] == 0
+        assert boundaries['bronze']['max'] == 1000
+        assert boundaries['master']['min'] == 1801

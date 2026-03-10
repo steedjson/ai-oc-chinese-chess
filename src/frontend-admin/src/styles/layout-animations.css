@@ -1,0 +1,334 @@
+/* 管理端布局 - 动画系统 */
+
+/* ===== 过渡动画 ===== */
+
+/* 侧边栏折叠动画 */
+.sider-collapse-transition {
+  transition: all var(--duration-slow) var(--ease-in-out);
+}
+
+/* 菜单项动画 */
+.menu-item-transition {
+  transition: all var(--duration) var(--ease-in-out);
+}
+
+/* Header 固定动画 */
+.header-sticky-transition {
+  transition: all var(--duration) var(--ease-out);
+}
+
+/* 内容区边距动画 */
+.content-margin-transition {
+  transition: margin-left var(--duration-slow) var(--ease-in-out);
+}
+
+/* ===== 微交互动画 ===== */
+
+/* 按钮点击反馈 */
+.btn-click-effect {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.btn-click-effect:active {
+  transform: scale(0.96);
+}
+
+/* 菜单项 hover 效果 */
+.menu-item-hover {
+  transition: all var(--duration) var(--ease-in-out);
+}
+
+.menu-item-hover:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+/* 用户下拉 hover */
+.user-dropdown-hover {
+  transition: all var(--duration) var(--ease-in-out);
+  border-radius: var(--radius-lg);
+}
+
+.user-dropdown-hover:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+/* 触发器 hover */
+.trigger-hover {
+  transition: background var(--duration) var(--ease-in-out);
+  border-radius: var(--radius);
+}
+
+.trigger-hover:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+/* ===== 加载动画 ===== */
+
+/* 骨架屏闪烁 */
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg) 25%,
+    var(--color-border-secondary) 50%,
+    var(--color-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 旋转加载 */
+.spin-loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== 通知动画 ===== */
+
+/* 通知红点脉冲 */
+.notification-badge-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 通知弹出动画 */
+.notification-pop {
+  animation: notification-pop var(--duration-slower) var(--ease-bounce);
+}
+
+@keyframes notification-pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== 页面切换动画 ===== */
+
+/* 页面淡入 */
+.page-fade-in {
+  animation: page-fade-in var(--duration-slower) var(--ease-out);
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 页面滑入 */
+.page-slide-in {
+  animation: page-slide-in var(--duration-slower) var(--ease-out);
+}
+
+@keyframes page-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== 面包屑动画 ===== */
+
+/* 面包屑项 hover */
+.breadcrumb-item-hover {
+  transition: all var(--duration) var(--ease-in-out);
+}
+
+.breadcrumb-item-hover:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ===== 卡片动画 ===== */
+
+/* 卡片悬浮效果 */
+.card-hover-effect {
+  transition: all var(--duration) var(--ease-in-out);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* 卡片进入动画 */
+.card-enter {
+  animation: card-enter var(--duration-slower) var(--ease-out);
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== 下拉菜单动画 ===== */
+
+/* 下拉展开 */
+.dropdown-expand {
+  animation: dropdown-expand var(--duration) var(--ease-out);
+}
+
+@keyframes dropdown-expand {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+}
+
+/* ===== 工具提示动画 ===== */
+
+/* 工具提示出现 */
+.tooltip-appear {
+  animation: tooltip-appear var(--duration) var(--ease-out);
+}
+
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== 进度条动画 ===== */
+
+/* 顶部进度条 */
+.progress-bar {
+  animation: progress-indeterminate 2s infinite linear;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    left: -100%;
+    width: 100%;
+  }
+  50% {
+    left: 0%;
+    width: 50%;
+  }
+  100% {
+    left: 100%;
+    width: 100%;
+  }
+}
+
+/* ===== 徽章动画 ===== */
+
+/* 徽章弹跳 */
+.badge-bounce {
+  animation: badge-bounce var(--duration) var(--ease-bounce);
+}
+
+@keyframes badge-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* ===== 波纹效果 ===== */
+
+/* 点击波纹 */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* ===== 响应式动画优化 ===== */
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 移动端动画优化 */
+@media (max-width: 768px) {
+  /* 简化动画效果 */
+  .card-hover-effect:hover {
+    transform: none;
+  }
+  
+  .menu-item-hover:hover {
+    transform: none;
+  }
+}

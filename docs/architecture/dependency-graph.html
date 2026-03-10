@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模块依赖关系图 - 中国象棋</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.css" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value { 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: #2196F3;
+        }
+        .stat-label { color: #666; margin-top: 5px; }
+        .warning { color: #f44336; }
+        .success { color: #4CAF50; }
+        #network { 
+            height: 600px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .analysis {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .analysis h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .analysis-section {
+            margin-bottom: 20px;
+        }
+        .analysis-section h3 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .module-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .module-tag {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #333;
+        }
+        .module-tag.danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .module-tag.warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f9f9f9;
+            font-weight: 600;
+            color: #333;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ 模块依赖关系图 - 中国象棋项目</h1>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">83</div>
+                <div class="stat-label">总模块数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value success">
+                    0
+                </div>
+                <div class="stat-label">循环依赖</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">26</div>
+                <div class="stat-label">孤立模块</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">14</div>
+                <div class="stat-label">过度依赖模块</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4CAF50;"></div>
+                <span>核心层 (core)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2196F3;"></div>
+                <span>功能层 (feature)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF9800;"></div>
+                <span>应用层 (app)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9E9E9E;"></div>
+                <span>未知层级</span>
+            </div>
+        </div>
+        
+        <div id="network"></div>
+        
+        <div class="analysis">
+            <h2>📊 依赖分析报告</h2>
+            
+            <div class="analysis-section">
+                <h3>🔄 循环依赖 (需要重构)</h3>
+                <p class="success">✅ 未发现循环依赖</p>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>📦 孤立模块 (无依赖关系)</h3>
+                <div class="module-list"><span class="module-tag">serializers</span><span class="module-tag">apps</span><span class="module-tag">urls</span><span class="module-tag">views</span><span class="module-tag">management</span><span class="module-tag">commands</span><span class="module-tag">urls</span><span class="module-tag">urls</span><span class="module-tag">models</span><span class="module-tag">serializers</span><span class="module-tag">urls</span><span class="module-tag">urls</span><span class="module-tag">common</span><span class="module-tag">exceptions</span><span class="module-tag">models</span><span class="module-tag">serializers</span><span class="module-tag">urls</span><span class="module-tag">apps</span><span class="module-tag">fen_service</span><span class="module-tag">ranking_services</span><span class="module-tag">spectator_views</span><span class="module-tag">serializers</span><span class="module-tag">urls</span><span class="module-tag">ranking_views</span><span class="module-tag">views</span><span class="module-tag">urls</span></div>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>⚠️ 过度依赖模块 (导入过多)</h3>
+                <table><tr><th>模块</th><th>导入数量</th></tr><tr><td class="warning">middleware</td><td>8</td></tr><tr><td class="warning">consumers</td><td>5</td></tr><tr><td class="warning">views</td><td>5</td></tr><tr><td class="warning">consumers</td><td>5</td></tr><tr><td class="warning">consumers</td><td>5</td></tr><tr><td class="warning">websocket_reconnect</td><td>5</td></tr><tr><td class="warning">websocket_reconnect_optimized</td><td>5</td></tr><tr><td class="warning">verify_reconnect</td><td>4</td></tr><tr><td class="warning">test_websocket</td><td>4</td></tr><tr><td class="warning">services</td><td>4</td></tr><tr><td class="warning">views</td><td>4</td></tr><tr><td class="warning">algorithm</td><td>4</td></tr><tr><td class="warning">chat_consumer</td><td>4</td></tr><tr><td class="warning">spectator_consumer</td><td>4</td></tr></table>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>🎯 核心模块 (被频繁依赖)</h3>
+                <table><tr><th>模块</th><th>被依赖次数</th></tr><tr><td>users</td><td>9</td></tr><tr><td>config</td><td>6</td></tr><tr><td>config</td><td>6</td></tr><tr><td>config</td><td>6</td></tr><tr><td>games</td><td>5</td></tr><tr><td>puzzles</td><td>4</td></tr><tr><td>authentication</td><td>4</td></tr></table>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>💡 重构建议</h3>
+                <ul><li style="margin: 10px 0;"><strong class="warning">🟡 中优先级：</strong> 部分模块导入过多，考虑拆分为更小的模块或使用依赖注入。</li><li style="margin: 10px 0;"><strong>🔵 低优先级：</strong> 发现孤立模块，检查是否为未使用代码或需要整合。</li><li style="margin: 10px 0;"><strong>💡 建议：</strong> 核心模块被频繁依赖，确保其 API 稳定并有完善的测试覆盖。</li></ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const nodes = new vis.DataSet([{"id": "verify_reconnect", "label": "verify_reconnect", "group": "unknown", "full_name": "verify_reconnect", "imports": 4, "imported_by": 0}, {"id": "test_websocket", "label": "test_websocket", "group": "core", "full_name": "test_websocket", "imports": 4, "imported_by": 0}, {"id": "manage", "label": "manage", "group": "unknown", "full_name": "manage", "imports": 2, "imported_by": 0}, {"id": "websocket.config", "label": "config", "group": "core", "full_name": "websocket.config", "imports": 2, "imported_by": 6}, {"id": "websocket.consumers", "label": "consumers", "group": "core", "full_name": "websocket.consumers", "imports": 5, "imported_by": 0}, {"id": "websocket", "label": "websocket", "group": "core", "full_name": "websocket", "imports": 3, "imported_by": 3}, {"id": "websocket.routing", "label": "routing", "group": "core", "full_name": "websocket.routing", "imports": 3, "imported_by": 0}, {"id": "websocket.middleware", "label": "middleware", "group": "core", "full_name": "websocket.middleware", "imports": 8, "imported_by": 0}, {"id": "daily_challenge.services", "label": "services", "group": "feature", "full_name": "daily_challenge.services", "imports": 2, "imported_by": 0}, {"id": "daily_challenge.models", "label": "models", "group": "feature", "full_name": "daily_challenge.models", "imports": 1, "imported_by": 0}, {"id": "daily_challenge.serializers", "label": "serializers", "group": "feature", "full_name": "daily_challenge.serializers", "imports": 0, "imported_by": 0}, {"id": "daily_challenge", "label": "daily_challenge", "group": "feature", "full_name": "daily_challenge", "imports": 0, "imported_by": 1}, {"id": "daily_challenge.apps", "label": "apps", "group": "feature", "full_name": "daily_challenge.apps", "imports": 0, "imported_by": 0}, {"id": "daily_challenge.urls", "label": "urls", "group": "feature", "full_name": "daily_challenge.urls", "imports": 0, "imported_by": 0}, {"id": "daily_challenge.views", "label": "views", "group": "feature", "full_name": "daily_challenge.views", "imports": 0, "imported_by": 0}, {"id": "daily_challenge.management", "label": "management", "group": "feature", "full_name": "daily_challenge.management", "imports": 0, "imported_by": 0}, {"id": "daily_challenge.management.commands", "label": "commands", "group": "feature", "full_name": "daily_challenge.management.commands", "imports": 0, "imported_by": 0}, {"id": "daily_challenge.management.commands.generate_daily_challenge", "label": "generate_daily_challenge", "group": "feature", "full_name": "daily_challenge.management.commands.generate_daily_challenge", "imports": 1, "imported_by": 0}, {"id": "config.asgi", "label": "asgi", "group": "core", "full_name": "config.asgi", "imports": 2, "imported_by": 0}, {"id": "config", "label": "config", "group": "core", "full_name": "config", "imports": 0, "imported_by": 6}, {"id": "config.settings", "label": "settings", "group": "core", "full_name": "config.settings", "imports": 1, "imported_by": 0}, {"id": "config.urls", "label": "urls", "group": "core", "full_name": "config.urls", "imports": 0, "imported_by": 0}, {"id": "config.wsgi", "label": "wsgi", "group": "core", "full_name": "config.wsgi", "imports": 1, "imported_by": 0}, {"id": "health", "label": "health", "group": "app", "full_name": "health", "imports": 0, "imported_by": 1}, {"id": "health.urls", "label": "urls", "group": "app", "full_name": "health.urls", "imports": 0, "imported_by": 0}, {"id": "health.views", "label": "views", "group": "app", "full_name": "health.views", "imports": 5, "imported_by": 0}, {"id": "ai_engine.services", "label": "services", "group": "feature", "full_name": "ai_engine.services", "imports": 4, "imported_by": 0}, {"id": "ai_engine.tasks", "label": "tasks", "group": "feature", "full_name": "ai_engine.tasks", "imports": 1, "imported_by": 0}, {"id": "ai_engine.config", "label": "config", "group": "core", "full_name": "ai_engine.config", "imports": 0, "imported_by": 6}, {"id": "ai_engine.models", "label": "models", "group": "feature", "full_name": "ai_engine.models", "imports": 0, "imported_by": 0}, {"id": "ai_engine.serializers", "label": "serializers", "group": "feature", "full_name": "ai_engine.serializers", "imports": 0, "imported_by": 0}, {"id": "ai_engine.consumers", "label": "consumers", "group": "feature", "full_name": "ai_engine.consumers", "imports": 1, "imported_by": 0}, {"id": "ai_engine", "label": "ai_engine", "group": "feature", "full_name": "ai_engine", "imports": 3, "imported_by": 2}, {"id": "ai_engine.engine_pool", "label": "engine_pool", "group": "feature", "full_name": "ai_engine.engine_pool", "imports": 1, "imported_by": 0}, {"id": "ai_engine.urls", "label": "urls", "group": "feature", "full_name": "ai_engine.urls", "imports": 0, "imported_by": 0}, {"id": "ai_engine.views", "label": "views", "group": "feature", "full_name": "ai_engine.views", "imports": 4, "imported_by": 0}, {"id": "matchmaking.queue", "label": "queue", "group": "feature", "full_name": "matchmaking.queue", "imports": 3, "imported_by": 0}, {"id": "matchmaking.algorithm", "label": "algorithm", "group": "feature", "full_name": "matchmaking.algorithm", "imports": 4, "imported_by": 0}, {"id": "matchmaking.elo", "label": "elo", "group": "feature", "full_name": "matchmaking.elo", "imports": 2, "imported_by": 0}, {"id": "matchmaking.models", "label": "models", "group": "feature", "full_name": "matchmaking.models", "imports": 1, "imported_by": 0}, {"id": "matchmaking.consumers", "label": "consumers", "group": "feature", "full_name": "matchmaking.consumers", "imports": 5, "imported_by": 0}, {"id": "matchmaking", "label": "matchmaking", "group": "feature", "full_name": "matchmaking", "imports": 0, "imported_by": 1}, {"id": "matchmaking.urls", "label": "urls", "group": "feature", "full_name": "matchmaking.urls", "imports": 0, "imported_by": 0}, {"id": "matchmaking.views", "label": "views", "group": "feature", "full_name": "matchmaking.views", "imports": 1, "imported_by": 0}, {"id": "common.health", "label": "health", "group": "core", "full_name": "common.health", "imports": 2, "imported_by": 1}, {"id": "common", "label": "common", "group": "core", "full_name": "common", "imports": 0, "imported_by": 0}, {"id": "common.health_urls", "label": "health_urls", "group": "core", "full_name": "common.health_urls", "imports": 2, "imported_by": 0}, {"id": "common.exceptions", "label": "exceptions", "group": "core", "full_name": "common.exceptions", "imports": 0, "imported_by": 0}, {"id": "users.models", "label": "models", "group": "core", "full_name": "users.models", "imports": 0, "imported_by": 0}, {"id": "users.serializers", "label": "serializers", "group": "core", "full_name": "users.serializers", "imports": 0, "imported_by": 0}, {"id": "users", "label": "users", "group": "core", "full_name": "users", "imports": 0, "imported_by": 9}, {"id": "users.urls", "label": "urls", "group": "core", "full_name": "users.urls", "imports": 0, "imported_by": 0}, {"id": "users.views", "label": "views", "group": "core", "full_name": "users.views", "imports": 2, "imported_by": 0}, {"id": "puzzles.services", "label": "services", "group": "feature", "full_name": "puzzles.services", "imports": 2, "imported_by": 0}, {"id": "puzzles.models", "label": "models", "group": "feature", "full_name": "puzzles.models", "imports": 1, "imported_by": 0}, {"id": "puzzles", "label": "puzzles", "group": "feature", "full_name": "puzzles", "imports": 0, "imported_by": 4}, {"id": "puzzles.apps", "label": "apps", "group": "feature", "full_name": "puzzles.apps", "imports": 0, "imported_by": 0}, {"id": "puzzles.urls", "label": "urls", "group": "feature", "full_name": "puzzles.urls", "imports": 1, "imported_by": 0}, {"id": "puzzles.views", "label": "views", "group": "feature", "full_name": "puzzles.views", "imports": 2, "imported_by": 0}, {"id": "games.fen_service", "label": "fen_service", "group": "feature", "full_name": "games.fen_service", "imports": 0, "imported_by": 0}, {"id": "games.ranking_services", "label": "ranking_services", "group": "feature", "full_name": "games.ranking_services", "imports": 0, "imported_by": 0}, {"id": "games.spectator_views", "label": "spectator_views", "group": "feature", "full_name": "games.spectator_views", "imports": 0, "imported_by": 0}, {"id": "games.spectator", "label": "spectator", "group": "feature", "full_name": "games.spectator", "imports": 2, "imported_by": 0}, {"id": "games.models", "label": "models", "group": "feature", "full_name": "games.models", "imports": 1, "imported_by": 0}, {"id": "games.chat_consumer", "label": "chat_consumer", "group": "feature", "full_name": "games.chat_consumer", "imports": 4, "imported_by": 0}, {"id": "games.serializers", "label": "serializers", "group": "feature", "full_name": "games.serializers", "imports": 0, "imported_by": 0}, {"id": "games.consumers", "label": "consumers", "group": "feature", "full_name": "games.consumers", "imports": 5, "imported_by": 0}, {"id": "games", "label": "games", "group": "feature", "full_name": "games", "imports": 0, "imported_by": 5}, {"id": "games.ranking_models", "label": "ranking_models", "group": "feature", "full_name": "games.ranking_models", "imports": 1, "imported_by": 0}, {"id": "games.spectator_consumer", "label": "spectator_consumer", "group": "feature", "full_name": "games.spectator_consumer", "imports": 4, "imported_by": 0}, {"id": "games.engine", "label": "engine", "group": "feature", "full_name": "games.engine", "imports": 1, "imported_by": 0}, {"id": "games.chat", "label": "chat", "group": "feature", "full_name": "games.chat", "imports": 2, "imported_by": 0}, {"id": "games.websocket_reconnect", "label": "websocket_reconnect", "group": "core", "full_name": "games.websocket_reconnect", "imports": 5, "imported_by": 0}, {"id": "games.websocket_reconnect_optimized", "label": "websocket_reconnect_optimized", "group": "core", "full_name": "games.websocket_reconnect_optimized", "imports": 5, "imported_by": 0}, {"id": "games.routing", "label": "routing", "group": "feature", "full_name": "games.routing", "imports": 1, "imported_by": 0}, {"id": "games.chat_views", "label": "chat_views", "group": "feature", "full_name": "games.chat_views", "imports": 2, "imported_by": 0}, {"id": "games.urls", "label": "urls", "group": "feature", "full_name": "games.urls", "imports": 0, "imported_by": 0}, {"id": "games.ranking_views", "label": "ranking_views", "group": "feature", "full_name": "games.ranking_views", "imports": 0, "imported_by": 0}, {"id": "games.views", "label": "views", "group": "feature", "full_name": "games.views", "imports": 0, "imported_by": 0}, {"id": "authentication.services", "label": "services", "group": "core", "full_name": "authentication.services", "imports": 1, "imported_by": 0}, {"id": "authentication", "label": "authentication", "group": "core", "full_name": "authentication", "imports": 0, "imported_by": 4}, {"id": "authentication.urls", "label": "urls", "group": "core", "full_name": "authentication.urls", "imports": 0, "imported_by": 0}, {"id": "authentication.views", "label": "views", "group": "core", "full_name": "authentication.views", "imports": 1, "imported_by": 0}]);
+        const links = new vis.DataSet([{"source": "verify_reconnect", "target": "games"}, {"source": "websocket.consumers", "target": "config"}, {"source": "websocket.consumers", "target": "websocket.config"}, {"source": "websocket.consumers", "target": "ai_engine.config"}, {"source": "websocket", "target": "websocket.config"}, {"source": "websocket", "target": "ai_engine.config"}, {"source": "websocket", "target": "config"}, {"source": "websocket.routing", "target": "matchmaking"}, {"source": "websocket.routing", "target": "games"}, {"source": "websocket.routing", "target": "ai_engine"}, {"source": "websocket.middleware", "target": "authentication"}, {"source": "websocket.middleware", "target": "users"}, {"source": "websocket.middleware", "target": "config"}, {"source": "websocket.middleware", "target": "websocket.config"}, {"source": "websocket.middleware", "target": "ai_engine.config"}, {"source": "daily_challenge.services", "target": "puzzles"}, {"source": "daily_challenge.management.commands.generate_daily_challenge", "target": "daily_challenge"}, {"source": "config.asgi", "target": "websocket"}, {"source": "ai_engine.services", "target": "websocket.config"}, {"source": "ai_engine.services", "target": "ai_engine.config"}, {"source": "ai_engine.services", "target": "config"}, {"source": "ai_engine", "target": "websocket.config"}, {"source": "ai_engine", "target": "ai_engine.config"}, {"source": "ai_engine", "target": "config"}, {"source": "ai_engine.views", "target": "ai_engine.config"}, {"source": "ai_engine.views", "target": "config"}, {"source": "ai_engine.views", "target": "websocket.config"}, {"source": "matchmaking.algorithm", "target": "games"}, {"source": "matchmaking.elo", "target": "users"}, {"source": "matchmaking.consumers", "target": "users"}, {"source": "matchmaking.consumers", "target": "websocket"}, {"source": "common.health_urls", "target": "health"}, {"source": "common.health_urls", "target": "common.health"}, {"source": "users.views", "target": "games"}, {"source": "users.views", "target": "authentication"}, {"source": "puzzles.services", "target": "puzzles"}, {"source": "puzzles.urls", "target": "puzzles"}, {"source": "puzzles.views", "target": "puzzles"}, {"source": "games.spectator", "target": "users"}, {"source": "games.chat_consumer", "target": "websocket"}, {"source": "games.consumers", "target": "authentication"}, {"source": "games.consumers", "target": "users"}, {"source": "games.spectator_consumer", "target": "authentication"}, {"source": "games.spectator_consumer", "target": "users"}, {"source": "games.engine", "target": "games"}, {"source": "games.chat", "target": "users"}, {"source": "games.routing", "target": "ai_engine"}, {"source": "authentication.services", "target": "users"}, {"source": "authentication.views", "target": "users"}]);
+        
+        const colors = {
+            core: '#4CAF50',
+            feature: '#2196F3',
+            app: '#FF9800',
+            unknown: '#9E9E9E'
+        };
+        
+        const data = { nodes, edges: links };
+        const options = {
+            nodes: {
+                shape: 'box',
+                font: {
+                    face: 'Arial',
+                    size: 12
+                },
+                margin: 10,
+                borderWidth: 2
+            },
+            edges: {
+                width: 1,
+                color: { color: '#ccc', highlight: '#2196F3' },
+                smooth: { type: 'continuous' }
+            },
+            groups: {
+                core: { color: { background: colors.core, border: '#388E3C' } },
+                feature: { color: { background: colors.feature, border: '#1976D2' } },
+                app: { color: { background: colors.app, border: '#F57C00' } },
+                unknown: { color: { background: colors.unknown, border: '#616161' } }
+            },
+            physics: {
+                enabled: true,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95,
+                    springConstant: 0.04,
+                    damping: 0.09
+                },
+                stabilization: { iterations: 100 }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 200,
+                zoomView: true,
+                dragView: true
+            }
+        };
+        
+        const network = new vis.Network(document.getElementById('network'), data, options);
+        
+        network.on("click", function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const node = nodes.get(nodeId);
+                console.log('Selected node:', node);
+            }
+        });
+    </script>
+</body>
+</html>

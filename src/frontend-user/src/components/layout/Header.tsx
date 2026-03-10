@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore, useSettingsStore } from '@/stores';
 import { authService } from '@/services';
+import ServiceStatus from './ServiceStatus';
 import type { MenuProps } from 'antd';
 
 const { Header: AntHeader } = Layout;
@@ -116,6 +117,9 @@ const Header: React.FC = () => {
 
       {/* 右侧操作区 */}
       <div className="flex items-center gap-3">
+        {/* 服务状态 */}
+        <ServiceStatus showDetails={true} />
+
         {/* 主题切换 */}
         <Button
           type="text"

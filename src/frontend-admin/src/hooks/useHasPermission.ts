@@ -1,5 +1,5 @@
 import { useAuthStore } from '../stores/auth';
-import { UserRole } from '../types';
+import type { UserRole } from '../types';
 
 export const useHasPermission = () => {
   const { user } = useAuthStore();

@@ -1,10 +1,14 @@
 import React from 'react';
 import type { Piece } from '@/types';
+import { getPieceAnimationClasses, type AnimationState } from '@/hooks/useChessAnimation';
+import '@/styles/chess-animations.css';
 
 interface ChessPieceProps {
   piece: Piece;
   isSelected?: boolean;
   isLastMove?: boolean;
+  isCaptured?: boolean;
+  animationState?: AnimationState;
   disabled?: boolean;
   onClick?: () => void;
 }
@@ -24,11 +28,18 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
   piece,
   isSelected = false,
   isLastMove = false,
+  isCaptured = false,
+  animationState,
   disabled = false,
   onClick,
 }) => {
   const char = PIECE_CHARS[piece.type][piece.color];
   const isRed = piece.color === 'red';
+
+  // 获取动画类名
+  const pieceAnimationClasses = animationState
+    ? getPieceAnimationClasses(piece.position, animationState, isSelected)
+    : '';
 
   return (
     <div
@@ -43,8 +54,10 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
         justify-center
         transition-all
         duration-200
+        ${pieceAnimationClasses}
         ${isSelected ? 'selected scale-110 z-10' : ''}
         ${isLastMove ? 'last-move' : ''}
+        ${isCaptured ? 'piece-captured' : ''}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
       `}
       style={{

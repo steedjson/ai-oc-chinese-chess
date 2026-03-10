@@ -16,6 +16,7 @@ from .serializers import (
     GameCreateSerializer,
     MoveCreateSerializer
 )
+from .timer_service import get_timer_service
 
 
 class GameViewSet(viewsets.ModelViewSet):
@@ -57,6 +58,11 @@ class GameViewSet(viewsets.ModelViewSet):
             game.status = 'playing'
             game.started_at = timezone.now()
             game.save()
+            
+            # 初始化计时器
+            timer_service = get_timer_service()
+            base_time = game.timeout_seconds or 7200  # 默认 2 小时
+            timer_service.init_timer(game, base_time)
         
         headers = self.get_success_headers(serializer.data)
         return Response(
