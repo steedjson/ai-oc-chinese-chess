@@ -11,12 +11,12 @@ class TestDifficultyConfig:
     """难度配置测试"""
     
     def test_difficulty_level_1_beginner(self):
-        """测试难度 1：入门级别（400 Elo）"""
+        """测试难度 1：入门级别（1320 Elo - Stockfish 最低）"""
         config = get_difficulty_config(1)
         
         assert config.level == 1
         assert config.name == "入门"
-        assert config.elo == 400
+        assert config.elo == 1320
         assert config.skill_level == 0
         assert config.search_depth == 5
         assert config.think_time_ms == 500
@@ -24,12 +24,12 @@ class TestDifficultyConfig:
         assert config.hash_mb == 64
     
     def test_difficulty_level_5_intermediate(self):
-        """测试难度 5：中级（1200 Elo）"""
+        """测试难度 5：中级（1700 Elo）"""
         config = get_difficulty_config(5)
         
         assert config.level == 5
         assert config.name == "中级"
-        assert config.elo == 1200
+        assert config.elo == 1700
         assert config.skill_level == 8
         assert config.search_depth == 13
         assert config.think_time_ms == 1500
@@ -37,12 +37,12 @@ class TestDifficultyConfig:
         assert config.hash_mb == 128
     
     def test_difficulty_level_10_master(self):
-        """测试难度 10：大师级别（2200+ Elo）"""
+        """测试难度 10：大师级别（2400 Elo）"""
         config = get_difficulty_config(10)
         
         assert config.level == 10
         assert config.name == "大师"
-        assert config.elo == 2200
+        assert config.elo == 2400
         assert config.skill_level == 20
         assert config.search_depth == 25
         assert config.think_time_ms == 5000

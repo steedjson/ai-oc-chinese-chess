@@ -20,12 +20,12 @@ class DifficultyConfig:
     hash_mb: int  # 哈希表大小（MB）
 
 
-# 10 级难度配置
+# 10 级难度配置（ELO 递增：1320 → 3200，Stockfish 最低 ELO=1320）
 DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     1: DifficultyConfig(
         level=1,
         name="入门",
-        elo=1320,  # Stockfish 最低 ELO 限制
+        elo=1320,  # Stockfish 最低
         skill_level=0,
         search_depth=5,
         think_time_ms=500,
@@ -35,7 +35,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     2: DifficultyConfig(
         level=2,
         name="新手",
-        elo=1350,  # Stockfish 最低 ELO 限制
+        elo=1400,
         skill_level=2,
         search_depth=7,
         think_time_ms=500,
@@ -45,7 +45,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     3: DifficultyConfig(
         level=3,
         name="初级",
-        elo=1320,  # Stockfish 最低 ELO 限制
+        elo=1500,
         skill_level=4,
         search_depth=9,
         think_time_ms=1000,
@@ -54,8 +54,8 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     ),
     4: DifficultyConfig(
         level=4,
-        name="入门",
-        elo=1000,
+        name="中级入门",
+        elo=1600,
         skill_level=6,
         search_depth=11,
         think_time_ms=1000,
@@ -65,7 +65,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     5: DifficultyConfig(
         level=5,
         name="中级",
-        elo=1200,
+        elo=1700,
         skill_level=8,
         search_depth=13,
         think_time_ms=1500,
@@ -74,8 +74,8 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     ),
     6: DifficultyConfig(
         level=6,
-        name="中级",
-        elo=1400,
+        name="中级进阶",
+        elo=1800,
         skill_level=10,
         search_depth=15,
         think_time_ms=1500,
@@ -85,7 +85,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     7: DifficultyConfig(
         level=7,
         name="高级",
-        elo=1600,
+        elo=1900,
         skill_level=12,
         search_depth=17,
         think_time_ms=2000,
@@ -94,8 +94,8 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     ),
     8: DifficultyConfig(
         level=8,
-        name="高级",
-        elo=1800,
+        name="高级进阶",
+        elo=2000,
         skill_level=14,
         search_depth=19,
         think_time_ms=2000,
@@ -105,7 +105,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     9: DifficultyConfig(
         level=9,
         name="大师",
-        elo=2000,
+        elo=2200,
         skill_level=16,
         search_depth=21,
         think_time_ms=3000,
@@ -115,7 +115,7 @@ DIFFICULTY_LEVELS: Dict[int, DifficultyConfig] = {
     10: DifficultyConfig(
         level=10,
         name="大师",
-        elo=2200,
+        elo=2400,
         skill_level=20,
         search_depth=25,
         think_time_ms=5000,

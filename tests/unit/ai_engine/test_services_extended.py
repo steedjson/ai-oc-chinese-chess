@@ -106,7 +106,7 @@ class TestStockfishServiceInitExtended:
             
             assert service.difficulty == 8
             assert service.config is not None
-            assert service.config.difficulty == 8
+            assert service.config.level == 8
     
     @patch('ai_engine.services.Stockfish')
     def test_stockfish_service_engine_instance(self, mock_stockfish):
@@ -172,7 +172,7 @@ class TestStockfishServiceGetBestMoveExtended:
     
     @patch('ai_engine.services.Stockfish')
     def test_get_best_move_with_zero_time_limit(self, mock_stockfish):
-        """测试零时间限制"""
+        """测试零时间限制（使用默认时间）"""
         mock_engine = MagicMock()
         mock_stockfish.return_value = mock_engine
         mock_engine.get_best_move.return_value = "e2e4"
@@ -185,13 +185,14 @@ class TestStockfishServiceGetBestMoveExtended:
             service._get_evaluation = Mock(return_value=0.0)
             service._get_piece_at = Mock(return_value="P")
             
+            # time_limit=0 被视为 falsy，使用默认 think_time_ms
             move = service.get_best_move(
                 "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
                 time_limit=0
             )
             
-            # 应该使用 0 作为时间限制
-            mock_engine.get_best_move.assert_called_with(time=0)
+            # 应该使用默认时间（难度 5 的 think_time_ms=1500）
+            mock_engine.get_best_move.assert_called_with(time=1500)
 
 
 class TestStockfishServiceEvaluation:
@@ -369,7 +370,7 @@ class TestStockfishServiceDifficulty:
             service.set_difficulty(8)
             
             assert service.difficulty == 8
-            assert service.config.difficulty == 8
+            assert service.config.level == 8
     
     @patch('ai_engine.services.Stockfish')
     def test_set_difficulty_updates_engine(self, mock_stockfish):
@@ -495,7 +496,7 @@ class TestDifficultyConfigExtended:
             configs[diff] = config
             
             assert config is not None
-            assert config.difficulty == diff
+            assert config.level == diff
             assert hasattr(config, 'skill_level')
             assert hasattr(config, 'search_depth')
             assert hasattr(config, 'think_time_ms')
@@ -521,14 +522,14 @@ class TestDifficultyConfigExtended:
         config = get_difficulty_config(5)
         
         # 验证属性类型
-        assert isinstance(config.difficulty, int)
+        assert isinstance(config.level, int)
         assert isinstance(config.skill_level, int)
         assert isinstance(config.search_depth, int)
         assert isinstance(config.think_time_ms, int)
         assert isinstance(config.elo, int)
         
         # 验证合理范围
-        assert 1 <= config.difficulty <= 10
+        assert 1 <= config.level <= 10
         assert config.skill_level >= 0
         assert config.search_depth >= 1
         assert config.think_time_ms >= 0

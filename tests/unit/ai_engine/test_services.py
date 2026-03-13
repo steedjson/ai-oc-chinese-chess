@@ -146,47 +146,59 @@ class TestAITasks:
 class TestAIConfig:
     """测试 AI 配置"""
     
-    def test_engine_config(self):
-        """测试引擎配置"""
-        from ai_engine.config import get_engine_config, StockfishConfig
+    def test_difficulty_config(self):
+        """测试难度配置"""
+        from ai_engine.config import get_difficulty_config, DifficultyConfig
         
-        config = get_engine_config()
-        
-        assert config is not None
+        for difficulty in range(1, 11):
+            config = get_difficulty_config(difficulty)
+            assert config is not None
+            assert isinstance(config, DifficultyConfig)
+            assert config.level == difficulty
     
     def test_difficulty_levels(self):
         """测试难度等级"""
-        from ai_engine.config import get_difficulty_settings
+        from ai_engine.config import get_difficulty_config
         
+        # 验证 ELO 递增
+        prev_elo = 0
         for difficulty in range(1, 11):
-            settings = get_difficulty_settings(difficulty)
-            assert settings is not None
+            config = get_difficulty_config(difficulty)
+            assert config is not None
+            assert config.elo > prev_elo, f"ELO 应该在难度 {difficulty-1} 到 {difficulty} 之间递增"
+            prev_elo = config.elo
 
 
 class TestEnginePool:
     """测试引擎池"""
     
-    def test_get_engine(self):
-        """测试获取引擎实例"""
-        from ai_engine.engine_pool import get_engine, EnginePool
+    @patch('ai_engine.engine_pool.StockfishService')
+    def test_get_engine_pool(self, mock_service_class):
+        """测试获取引擎池实例"""
+        from ai_engine.engine_pool import get_engine_pool, EnginePool
         
-        try:
-            engine = get_engine()
-            assert engine is not None
-        except Exception:
-            # Stockfish 可能未安装
-            pass
+        pool = get_engine_pool()
+        assert pool is not None
+        assert isinstance(pool, EnginePool)
     
-    def test_release_engine(self):
-        """测试释放引擎实例"""
-        from ai_engine.engine_pool import release_engine
+    @patch('ai_engine.engine_pool.StockfishService')
+    def test_engine_pool_acquire_release(self, mock_service_class):
+        """测试引擎池获取和释放"""
+        from ai_engine.engine_pool import EnginePool
+        import asyncio
         
-        try:
-            engine = get_engine()
-            if engine:
-                release_engine(engine)
-        except Exception:
-            pass
+        pool = EnginePool(pool_size=2)
+        
+        # Mock 引擎
+        mock_engine = Mock()
+        pool.engines[0] = mock_engine
+        
+        # 测试获取
+        engine = asyncio.run(pool.acquire(difficulty=5))
+        assert engine is not None
+        
+        # 测试释放
+        pool.release(engine)
 
 
 @pytest.fixture

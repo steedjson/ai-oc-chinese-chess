@@ -84,18 +84,26 @@ class TestAIGameModel:
     
     def test_create_ai_game(self):
         """测试创建 AI 对局"""
-        player_id = uuid4()
+        from users.models import User
+        
+        # 创建测试用户
+        player = User.objects.create_user(
+            username='testplayer',
+            email='test@example.com',
+            password='testpass123'
+        )
         
         game = AIGame.objects.create(
-            player_id=player_id,
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
-        assert game.player_id == player_id
+        assert game.player == player
         assert game.ai_level == 5
         assert game.ai_side == 'black'
         assert game.status == 'playing'
@@ -103,12 +111,16 @@ class TestAIGameModel:
     
     def test_game_str_representation(self):
         """测试对局的字符串表示"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer2', email='test2@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=3,
             ai_side='red',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='pending'
         )
         
@@ -117,27 +129,34 @@ class TestAIGameModel:
     
     def test_game_status_choices(self):
         """测试对局状态选择"""
+        from users.models import User
         valid_statuses = ['pending', 'playing', 'red_win', 'black_win', 'draw', 'aborted']
         
-        for status in valid_statuses:
+        for i, status in enumerate(valid_statuses):
+            player = User.objects.create_user(username=f'testplayer{i}', email=f'test{i}@example.com', password='testpass123')
             game = AIGame.objects.create(
-                player_id=uuid4(),
+                player=player,
                 ai_level=5,
                 ai_side='black',
                 fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
                 fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+                move_history=[],
                 status=status
             )
             assert game.status == status
     
     def test_game_finish(self):
         """测试对局结束"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_finish', email='test_finish@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
@@ -153,12 +172,16 @@ class TestAIGameModel:
     
     def test_game_move_history(self):
         """测试对局走棋历史"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_history', email='test_history@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
@@ -175,12 +198,16 @@ class TestAIGameModel:
     
     def test_game_performance_metrics(self):
         """测试对局性能指标"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_perf', email='test_perf@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
@@ -201,12 +228,16 @@ class TestAIAnalysisModel:
     
     def test_create_analysis(self):
         """测试创建分析结果"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_analysis', email='test_analysis@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
@@ -229,12 +260,16 @@ class TestAIAnalysisModel:
     
     def test_analysis_str_representation(self):
         """测试分析结果的字符串表示"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_analysis2', email='test_analysis2@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         
@@ -254,8 +289,11 @@ class TestAIAnalysisModel:
     
     def test_analysis_top_moves(self):
         """测试顶级走法列表"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_analysis3', email='test_analysis3@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
@@ -285,12 +323,16 @@ class TestAIAnalysisModel:
     
     def test_analysis_ordering(self):
         """测试分析结果按步数排序"""
+        from users.models import User
+        player = User.objects.create_user(username='testplayer_order', email='test_order@example.com', password='testpass123')
+        
         game = AIGame.objects.create(
-            player_id=uuid4(),
+            player=player,
             ai_level=5,
             ai_side='black',
             fen_start="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
             fen_current="rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1",
+            move_history=[],
             status='playing'
         )
         

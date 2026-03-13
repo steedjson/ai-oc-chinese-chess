@@ -6,63 +6,75 @@ AI Engine 单元测试 - 引擎池管理测试
 import pytest
 import asyncio
 from unittest.mock import Mock, patch, MagicMock
-from ai_engine.engine_pool import EnginePool
+
+# 在导入 EnginePool 之前先 mock StockfishService
+mock_stockfish_service = Mock()
+with patch('ai_engine.services.Stockfish') as mock_stockfish:
+    mock_stockfish.return_value = Mock()
+    from ai_engine.engine_pool import EnginePool
+    from ai_engine.services import StockfishService
 
 
 class TestEnginePool:
     """引擎池管理测试"""
     
-    @patch('ai_engine.services.StockfishService')
-    def test_pool_initialization(self, mock_service_class):
+    @pytest.fixture
+    def mock_engine(self):
+        """Mock 引擎"""
+        engine = Mock()
+        engine.set_difficulty = Mock()
+        return engine
+    
+    def test_pool_initialization(self, mock_engine):
         """测试引擎池初始化"""
-        pool = EnginePool(pool_size=4)
-        
-        assert pool.pool_size == 4
-        assert len(pool.engines) == 4
-        assert pool.available.qsize() == 4
-        assert len(pool.in_use) == 0
+        with patch('ai_engine.services.StockfishService', return_value=mock_engine):
+            pool = EnginePool(pool_size=4)
+            
+            assert pool.pool_size == 4
+            assert len(pool.engines) == 4
+            assert pool.available.qsize() == 4
+            assert len(pool.in_use) == 0
     
-    @patch('ai_engine.services.StockfishService')
     @pytest.mark.asyncio
-    async def test_acquire_engine(self, mock_service_class):
+    async def test_acquire_engine(self, mock_engine):
         """测试获取引擎"""
-        pool = EnginePool(pool_size=4)
-        
-        engine = await pool.acquire(difficulty=5)
-        
-        assert engine is not None
-        assert pool.available.qsize() == 3
-        assert len(pool.in_use) == 1
-        engine.set_difficulty.assert_called_with(5)
-    
-    @patch('ai_engine.services.StockfishService')
-    @pytest.mark.asyncio
-    async def test_release_engine(self, mock_service_class):
-        """测试释放引擎"""
-        pool = EnginePool(pool_size=4)
-        
-        engine = await pool.acquire(difficulty=5)
-        pool.release(engine)
-        
-        assert pool.available.qsize() == 4
-        assert len(pool.in_use) == 0
-    
-    @patch('ai_engine.services.StockfishService')
-    @pytest.mark.asyncio
-    async def test_acquire_multiple_engines(self, mock_service_class):
-        """测试获取多个引擎"""
-        pool = EnginePool(pool_size=4)
-        
-        engines = []
-        for i in range(4):
+        with patch('ai_engine.services.StockfishService', return_value=mock_engine):
+            pool = EnginePool(pool_size=4)
+            
             engine = await pool.acquire(difficulty=5)
-            engines.append(engine)
-        
-        assert len(engines) == 4
-        assert pool.available.qsize() == 0
-        assert len(pool.in_use) == 4
+            
+            assert engine is not None
+            assert pool.available.qsize() == 3
+            assert len(pool.in_use) == 1
+            engine.set_difficulty.assert_called_with(5)
     
-    @patch('ai_engine.services.StockfishService')
+    @pytest.mark.asyncio
+    async def test_release_engine(self, mock_engine):
+        """测试释放引擎"""
+        with patch('ai_engine.services.StockfishService', return_value=mock_engine):
+            pool = EnginePool(pool_size=4)
+            
+            engine = await pool.acquire(difficulty=5)
+            pool.release(engine)
+            
+            assert pool.available.qsize() == 4
+            assert len(pool.in_use) == 0
+    
+    @pytest.mark.asyncio
+    async def test_acquire_multiple_engines(self, mock_engine):
+        """测试获取多个引擎"""
+        with patch('ai_engine.services.StockfishService', return_value=mock_engine):
+            pool = EnginePool(pool_size=4)
+            
+            engines = []
+            for i in range(4):
+                engine = await pool.acquire(difficulty=5)
+                engines.append(engine)
+            
+            assert len(engines) == 4
+            assert pool.available.qsize() == 0
+            assert len(pool.in_use) == 4
+    
     @pytest.mark.asyncio
     async def test_acquire_when_pool_empty(self, mock_service_class):
         """测试引擎池为空时获取引擎（应该等待）"""
